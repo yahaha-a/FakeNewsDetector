@@ -158,11 +158,19 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogInfo(string message)
         {
+            string action;
+            
+            if (message.Contains("初始化")) 
+                action = LogContext.Actions.Initialize;
+            else if (message.Contains("释放"))
+                action = LogContext.Actions.Cleanup;
+            else
+                action = LogContext.Actions.Process;
+        
             SerilogLoggerService.Instance.LogComponentInfo(
                 LogContext.Components.DependencyContainer, 
-                message.Contains("初始化") ? LogContext.Actions.Initialize : 
-                message.Contains("释放") ? LogContext.Actions.Cleanup : 
-                LogContext.Actions.Process);
+                action,
+                message);
         }
         
         /// <summary>
@@ -170,12 +178,19 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogError(string message, Exception ex)
         {
+            string action;
+            
+            if (message.Contains("初始化")) 
+                action = LogContext.Actions.Initialize;
+            else if (message.Contains("释放"))
+                action = LogContext.Actions.Cleanup;
+            else
+                action = LogContext.Actions.Process;
+        
             SerilogLoggerService.Instance.LogComponentError(
                 ex,
                 LogContext.Components.DependencyContainer, 
-                message.Contains("初始化") ? LogContext.Actions.Initialize : 
-                message.Contains("释放") ? LogContext.Actions.Cleanup : 
-                LogContext.Actions.Process,
+                action,
                 message);
         }
     }

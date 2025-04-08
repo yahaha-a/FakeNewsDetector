@@ -67,24 +67,28 @@ namespace Client.Views.Controls
             SerilogLoggerService.Instance.LogComponentDebug(
                 LogContext.Components.ErrorNotification,
                 LogContext.Actions.Process,
-                $"异常类型: {exception.GetType().FullName}");
+                "异常类型",
+                exception.GetType().FullName!);
                 
             SerilogLoggerService.Instance.LogComponentDebug(
                 LogContext.Components.ErrorNotification,
                 LogContext.Actions.Process,
-                $"异常消息: {exception.Message}");
+                "异常消息",
+                exception.Message);
             
             if (exception.InnerException != null)
             {
                 SerilogLoggerService.Instance.LogComponentDebug(
                     LogContext.Components.ErrorNotification,
                     LogContext.Actions.Process,
-                    $"内部异常类型: {exception.InnerException.GetType().FullName}");
+                    "内部异常类型",
+                    exception.InnerException.GetType().FullName!);
                     
                 SerilogLoggerService.Instance.LogComponentDebug(
                     LogContext.Components.ErrorNotification,
                     LogContext.Actions.Process,
-                    $"内部异常消息: {exception.InnerException.Message}");
+                    "内部异常消息",
+                    exception.InnerException.Message);
             }
         }
         

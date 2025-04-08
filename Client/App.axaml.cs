@@ -460,45 +460,35 @@ public partial class App : Application
     // 记录信息到文件
     private void LogInfo(string message)
     {
-        var actionPart = DetermineAction(message);
-        
-        if (message.StartsWith("App: "))
-        {
-            // 移除旧格式的前缀
-            message = message.Substring(5);
-        }
+        var action = DetermineAction(message);
+        var details = ExtractDetails(message);
         
         SerilogLoggerService.Instance.LogComponentInfo(
             LogContext.Components.App, 
-            actionPart,
-            message);
+            action,
+            details);
     }
     
     // 记录错误到文件
     private void LogError(string message, Exception? ex = null)
     {
-        var actionPart = DetermineAction(message);
-        
-        if (message.StartsWith("App: "))
-        {
-            // 移除旧格式的前缀
-            message = message.Substring(5);
-        }
+        var action = DetermineAction(message);
+        var details = ExtractDetails(message);
         
         if (ex != null)
         {
             SerilogLoggerService.Instance.LogComponentError(
                 ex,
                 LogContext.Components.App, 
-                actionPart,
-                message);
+                action,
+                details);
         }
         else
         {
             SerilogLoggerService.Instance.LogComponentError(
                 LogContext.Components.App, 
-                actionPart,
-                message);
+                action,
+                details);
         }
     }
 
@@ -507,7 +497,8 @@ public partial class App : Application
     {
         if (message.Contains("初始化")) return LogContext.Actions.Initialize;
         if (message.Contains("启动")) return LogContext.Actions.Start;
-        if (message.Contains("配置") || message.Contains("设置")) return LogContext.Actions.Configure;
+        if (message.Contains("配置")) return LogContext.Actions.Configure;
+        if (message.Contains("设置变更") || message.Contains("设置已")) return LogContext.Actions.Configure;
         if (message.Contains("加载")) return LogContext.Actions.Load;
         if (message.Contains("保存")) return LogContext.Actions.Save;
         if (message.Contains("清理")) return LogContext.Actions.Cleanup;
@@ -516,8 +507,25 @@ public partial class App : Application
         if (message.Contains("语言")) return LogContext.Actions.ChangeLanguage;
         if (message.Contains("导航")) return LogContext.Actions.Navigate;
         if (message.Contains("处理")) return LogContext.Actions.Process;
-        if (message.Contains("显示")) return LogContext.Actions.Process;
-        return LogContext.Actions.Process;
+        if (message.Contains("显示")) return LogContext.Actions.Display;
+        if (message.Contains("创建")) return LogContext.Actions.Create;
+        if (message.Contains("更新")) return LogContext.Actions.Update;
+        if (message.Contains("删除")) return LogContext.Actions.Delete;
+        if (message.Contains("执行")) return LogContext.Actions.Execute;
+        if (message.Contains("验证")) return LogContext.Actions.Validate;
+        return LogContext.Actions.Process; // 默认操作
+    }
+
+    // 从消息中提取详细信息
+    private string ExtractDetails(string message)
+    {
+        // 移除旧格式的前缀
+        if (message.StartsWith("App: "))
+        {
+            message = message.Substring(5);
+        }
+        
+        return message;
     }
 
     /// <summary>

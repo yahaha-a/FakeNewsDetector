@@ -123,7 +123,7 @@ namespace Client.ViewModels.Base
                     ex,
                     LogContext.Components.Validation,
                     LogContext.Actions.Validate,
-                    $"属性: {propertyName}, 类型: {GetType().Name}");
+                    $"属性验证失败 - 属性: {propertyName}, 类型: {GetType().Name}");
             }
         }
 

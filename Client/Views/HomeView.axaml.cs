@@ -51,7 +51,8 @@ public partial class HomeView : UserControl
                 SerilogLoggerService.Instance.LogComponentDebug(
                     LogContext.Components.HomeView,
                     LogContext.Actions.Process,
-                    $"新的DataContext是HomeViewModel: TotalDetections={viewModel.TotalDetections}");
+                    "新的DataContext是HomeViewModel",
+                    new { TotalDetections = viewModel.TotalDetections });
             }
             else if (DataContext == null)
             {
@@ -65,7 +66,8 @@ public partial class HomeView : UserControl
                 SerilogLoggerService.Instance.LogComponentWarning(
                     LogContext.Components.HomeView,
                     LogContext.Actions.Process,
-                    $"DataContext类型不是HomeViewModel，而是 {DataContext.GetType().Name}");
+                    "DataContext类型不是HomeViewModel",
+                    DataContext.GetType().Name);
             }
         }
         catch (Exception ex)
@@ -92,7 +94,8 @@ public partial class HomeView : UserControl
                 SerilogLoggerService.Instance.LogComponentDebug(
                     LogContext.Components.HomeView,
                     LogContext.Actions.Load,
-                    $"加载完成，DataContext是HomeViewModel: TotalDetections={viewModel.TotalDetections}");
+                    "加载完成，DataContext是HomeViewModel",
+                    new { TotalDetections = viewModel.TotalDetections });
             }
             else
             {

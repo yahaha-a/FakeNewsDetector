@@ -75,7 +75,11 @@ namespace Client.Services
                 .CreateLogger();
 
             // 记录日志系统初始化完成
-            this.LogComponentInfo(LogContext.Components.App, LogContext.Actions.Initialize, "日志系统已初始化，最小日志级别: " + minimumLevel);
+            this.LogComponentInfo(
+                LogContext.Components.App, 
+                LogContext.Actions.Initialize, 
+                "日志系统已初始化", 
+                new { MinimumLevel = minimumLevel });
         }
 
         /// <inheritdoc/>

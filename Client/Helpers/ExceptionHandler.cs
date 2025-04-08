@@ -85,13 +85,20 @@ namespace Client.Helpers
             if (exception.InnerException != null)
             {
                 // 如果有内部异常，记录更详细的信息
-                Logger.Error(exception, "[{Source}] {Message} (内部异常: {InnerMessage})", 
-                    source, exception.Message, exception.InnerException.Message);
+                Logger.LogComponentError(
+                    exception,
+                    source,
+                    LogContext.Actions.Process,
+                    $"异常处理 - 内部异常: {exception.InnerException.Message}");
             }
             else
             {
                 // 记录基本异常信息
-                Logger.Error(exception, "[{Source}] {Message}", source, exception.Message);
+                Logger.LogComponentError(
+                    exception,
+                    source,
+                    LogContext.Actions.Process,
+                    "异常处理");
             }
         }
 

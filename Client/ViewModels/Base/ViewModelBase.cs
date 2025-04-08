@@ -96,7 +96,8 @@ namespace Client.ViewModels.Base
                 SerilogLoggerService.Instance.LogComponentError(
                     ex,
                     GetViewModelComponent(),
-                    LogContext.Actions.Load);
+                    LogContext.Actions.Load,
+                    $"加载'{Title}'视图模型时发生错误");
                 StatusMessage = $"加载出错: {ex.Message}";
             }
             finally
@@ -136,7 +137,8 @@ namespace Client.ViewModels.Base
                 SerilogLoggerService.Instance.LogComponentError(
                     ex,
                     GetViewModelComponent(), 
-                    LogContext.Actions.Execute);
+                    LogContext.Actions.Execute,
+                    "执行异步任务失败");
                 StatusMessage = $"操作出错: {ex.Message}";
             }
             finally
@@ -169,7 +171,8 @@ namespace Client.ViewModels.Base
                 SerilogLoggerService.Instance.LogComponentError(
                     ex,
                     GetViewModelComponent(),
-                    LogContext.Actions.Execute);
+                    LogContext.Actions.Execute,
+                    "执行异步任务失败");
                 StatusMessage = $"操作出错: {ex.Message}";
                 return default;
             }

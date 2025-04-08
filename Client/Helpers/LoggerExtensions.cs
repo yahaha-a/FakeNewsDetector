@@ -15,7 +15,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="action">操作</param>
         /// <param name="details">详情</param>
-        public static void LogComponentInfo(this ILoggerService logger, string component, string action, string details = null)
+        public static void LogComponentInfo(this ILoggerService logger, string component, string action, string? details = null)
         {
             logger.Information("[{Component}] {Action}{Details}", 
                 component, 
@@ -30,7 +30,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="action">操作</param>
         /// <param name="details">详情</param>
-        public static void LogComponentDebug(this ILoggerService logger, string component, string action, string details = null)
+        public static void LogComponentDebug(this ILoggerService logger, string component, string action, string? details = null)
         {
             logger.Debug("[{Component}] {Action}{Details}", 
                 component, 
@@ -45,7 +45,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="action">操作</param>
         /// <param name="details">详情</param>
-        public static void LogComponentWarning(this ILoggerService logger, string component, string action, string details = null)
+        public static void LogComponentWarning(this ILoggerService logger, string component, string action, string? details = null)
         {
             logger.Warning("[{Component}] {Action}{Details}", 
                 component, 
@@ -60,7 +60,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="action">操作</param>
         /// <param name="details">详情</param>
-        public static void LogComponentError(this ILoggerService logger, string component, string action, string details = null)
+        public static void LogComponentError(this ILoggerService logger, string component, string action, string? details = null)
         {
             logger.Error("[{Component}] {Action}{Details}", 
                 component, 
@@ -76,7 +76,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="action">操作</param>
         /// <param name="details">详情</param>
-        public static void LogComponentError(this ILoggerService logger, Exception ex, string component, string action, string details = null)
+        public static void LogComponentError(this ILoggerService logger, Exception ex, string component, string action, string? details = null)
         {
             logger.Error(ex, "[{Component}] {Action}{Details}", 
                 component, 
@@ -91,7 +91,7 @@ namespace Client.Helpers
         /// <param name="component">组件名称</param>
         /// <param name="state">状态</param>
         /// <param name="details">详情</param>
-        public static void LogComponentState(this ILoggerService logger, string component, string state, string details = null)
+        public static void LogComponentState(this ILoggerService logger, string component, string state, string? details = null)
         {
             logger.Information("[{Component}] {State}{Details}", 
                 component, 
@@ -129,6 +129,57 @@ namespace Client.Helpers
                 component, 
                 action, 
                 parameters);
+        }
+
+        /// <summary>
+        /// 记录带参数的组件调试日志
+        /// </summary>
+        /// <param name="logger">日志服务</param>
+        /// <param name="component">组件名称</param>
+        /// <param name="action">操作</param>
+        /// <param name="message">消息</param>
+        /// <param name="paramValue">参数值</param>
+        public static void LogComponentDebug(this ILoggerService logger, string component, string action, string message, object? paramValue)
+        {
+            logger.Debug("[{Component}] {Action}: {Message} {ParamValue}", 
+                component, 
+                action, 
+                message,
+                paramValue ?? "[null]");
+        }
+
+        /// <summary>
+        /// 记录带参数的组件警告日志
+        /// </summary>
+        /// <param name="logger">日志服务</param>
+        /// <param name="component">组件名称</param>
+        /// <param name="action">操作</param>
+        /// <param name="message">消息</param>
+        /// <param name="paramValue">参数值</param>
+        public static void LogComponentWarning(this ILoggerService logger, string component, string action, string message, object? paramValue)
+        {
+            logger.Warning("[{Component}] {Action}: {Message} {ParamValue}", 
+                component, 
+                action, 
+                message,
+                paramValue ?? "[null]");
+        }
+
+        /// <summary>
+        /// 记录带参数的组件信息日志
+        /// </summary>
+        /// <param name="logger">日志服务</param>
+        /// <param name="component">组件名称</param>
+        /// <param name="action">操作</param>
+        /// <param name="message">消息</param>
+        /// <param name="paramValue">参数值</param>
+        public static void LogComponentInfo(this ILoggerService logger, string component, string action, string message, object? paramValue)
+        {
+            logger.Information("[{Component}] {Action}: {Message} {ParamValue}", 
+                component, 
+                action, 
+                message,
+                paramValue ?? "[null]");
         }
     }
 } 

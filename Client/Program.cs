@@ -135,7 +135,7 @@ class Program
     }
     
     // 记录信息到文件
-    private static void LogInfo(string action, string details = null)
+    private static void LogInfo(string action, string? details = null)
     {
         SerilogLoggerService.Instance.LogComponentInfo(
             LogContext.Components.Program, 

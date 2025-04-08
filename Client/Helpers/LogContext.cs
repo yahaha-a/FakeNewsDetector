@@ -53,6 +53,7 @@ namespace Client.Helpers
             public const string ChangeTheme = "更改主题";
             public const string ChangeLanguage = "更改语言";
             public const string ChangeSettings = "更改设置";
+            public const string Display = "显示";
         }
         
         /// <summary>
