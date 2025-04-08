@@ -63,16 +63,14 @@ namespace Client.DependencyInjection
                     // 注册AppConfig验证器
                     services.AddSingleton<IValidator<AppConfig>, AppConfigValidator>();
                     
+                    // 注册配置存储服务 - 单例模式
+                    services.AddSingleton<IConfigStorageService, ConfigStorageService>();
+                    
                     // 注册配置服务 - 单例模式
                     services.AddSingleton<IConfigService>(sp => {
                         var validator = sp.GetRequiredService<IValidator<AppConfig>>();
-                        var appDataPath = Path.Combine(
-                            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                            "FakeNewsDetector"
-                        );
-                        Directory.CreateDirectory(appDataPath);
-                        var configFilePath = Path.Combine(appDataPath, "config.json");
-                        return new ConfigService(configFilePath, validator);
+                        var storageService = sp.GetRequiredService<IConfigStorageService>();
+                        return new ConfigService(storageService, validator);
                     });
                     
                     // 注册设置服务 - 单例模式

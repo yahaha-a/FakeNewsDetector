@@ -22,9 +22,22 @@ public interface IConfigService : IDisposable
     AppConfig GetConfig();
 
     /// <summary>
+    /// 获取指定层级的配置
+    /// </summary>
+    /// <param name="level">配置层级</param>
+    AppConfig GetConfig(ConfigLevel level);
+
+    /// <summary>
     /// 更新配置
     /// </summary>
     Task UpdateConfigAsync(AppConfig config);
+
+    /// <summary>
+    /// 更新指定层级的配置
+    /// </summary>
+    /// <param name="config">配置对象</param>
+    /// <param name="level">配置层级</param>
+    Task UpdateConfigAsync(AppConfig config, ConfigLevel level);
 
     /// <summary>
     /// 保存配置到文件
@@ -32,20 +45,45 @@ public interface IConfigService : IDisposable
     Task SaveConfigAsync();
 
     /// <summary>
+    /// 保存指定层级的配置
+    /// </summary>
+    /// <param name="level">配置层级</param>
+    Task SaveConfigAsync(ConfigLevel level);
+
+    /// <summary>
     /// 从文件加载配置
     /// </summary>
     Task LoadConfigAsync();
 
     /// <summary>
+    /// 加载指定层级的配置
+    /// </summary>
+    /// <param name="level">配置层级</param>
+    Task LoadConfigAsync(ConfigLevel level);
+
+    /// <summary>
     /// 重置配置为默认值
     /// </summary>
     Task ResetConfigAsync();
-    
+
+    /// <summary>
+    /// 重置指定层级的配置为默认值
+    /// </summary>
+    /// <param name="level">配置层级</param>
+    Task ResetConfigAsync(ConfigLevel level);
+
     /// <summary>
     /// 重置配置的指定部分为默认值
     /// </summary>
     /// <param name="section">要重置的配置部分</param>
     Task ResetConfigSectionAsync(ConfigSection section);
+
+    /// <summary>
+    /// 重置指定层级配置的指定部分为默认值
+    /// </summary>
+    /// <param name="section">要重置的配置部分</param>
+    /// <param name="level">配置层级</param>
+    Task ResetConfigSectionAsync(ConfigSection section, ConfigLevel level);
 
     /// <summary>
     /// 验证配置

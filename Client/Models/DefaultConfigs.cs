@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace Client.Models;
 
@@ -52,16 +52,16 @@ public static class DefaultConfigs
     /// 获取默认完整应用配置
     /// </summary>
     /// <returns>默认应用配置</returns>
-    public static AppConfig GetDefaultAppConfig()
+    public static AppConfig GetDefaultConfig()
     {
         return new AppConfig
         {
             Theme = DefaultTheme,
             Language = DefaultLanguage,
             WindowState = GetDefaultWindowState(),
-            RecentFiles = new ObservableCollection<string>(),
             ApiSettings = GetDefaultApiSettings(),
-            UiSettings = GetDefaultUiSettings()
+            UiSettings = GetDefaultUiSettings(),
+            RecentFiles = new List<string>()
         };
     }
     
@@ -73,10 +73,10 @@ public static class DefaultConfigs
     {
         return new WindowState
         {
-            Width = DefaultWindowWidth,
-            Height = DefaultWindowHeight,
-            X = 0,
-            Y = 0,
+            Width = 1280,
+            Height = 720,
+            X = 100,
+            Y = 100,
             IsMaximized = false
         };
     }
@@ -89,9 +89,10 @@ public static class DefaultConfigs
     {
         return new ApiSettings
         {
-            BaseUrl = DefaultApiBaseUrl,
-            Timeout = DefaultApiTimeout,
-            RetryCount = DefaultApiRetryCount
+            BaseUrl = "https://api.fakenewsdetector.com",
+            Timeout = 30,
+            RetryCount = 3,
+            ApiKey = string.Empty
         };
     }
     
@@ -103,9 +104,10 @@ public static class DefaultConfigs
     {
         return new UiSettings
         {
-            FontSize = DefaultFontSize,
-            AnimationEnabled = true,
-            ShowTooltips = true,
+            FontSize = 14,
+            ShowStatusBar = true,
+            ShowToolbar = true,
+            AutoSave = true,
             ConfirmOnExit = true
         };
     }
@@ -120,7 +122,7 @@ public static class DefaultConfigs
     {
         if (config == null)
         {
-            return GetDefaultAppConfig();
+            return GetDefaultConfig();
         }
         
         switch (section)
@@ -141,53 +143,12 @@ public static class DefaultConfigs
                 config.Language = DefaultLanguage;
                 break;
             case ConfigSection.RecentFiles:
-                config.RecentFiles = new ObservableCollection<string>();
+                config.RecentFiles = new List<string>();
                 break;
             case ConfigSection.All:
-                return GetDefaultAppConfig();
+                return GetDefaultConfig();
         }
         
         return config;
     }
-}
-
-/// <summary>
-/// 配置部分枚举
-/// </summary>
-public enum ConfigSection
-{
-    /// <summary>
-    /// 所有配置
-    /// </summary>
-    All,
-    
-    /// <summary>
-    /// 窗口状态
-    /// </summary>
-    WindowState,
-    
-    /// <summary>
-    /// API设置
-    /// </summary>
-    ApiSettings,
-    
-    /// <summary>
-    /// UI设置
-    /// </summary>
-    UiSettings,
-    
-    /// <summary>
-    /// 主题
-    /// </summary>
-    Theme,
-    
-    /// <summary>
-    /// 语言
-    /// </summary>
-    Language,
-    
-    /// <summary>
-    /// 最近文件
-    /// </summary>
-    RecentFiles
 } 
