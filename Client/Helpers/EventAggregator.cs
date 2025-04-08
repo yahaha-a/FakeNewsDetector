@@ -143,7 +143,8 @@ namespace Client.Helpers
                         ex,
                         LogContext.Components.EventAggregator,
                         LogContext.Actions.Process,
-                        $"事件处理异常 - 事件类型: {typeof(TEvent).Name}");
+                        "事件处理异常",
+                        new { EventType = typeof(TEvent).Name });
                 }
             }
         }

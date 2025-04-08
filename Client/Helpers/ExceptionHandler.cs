@@ -89,7 +89,8 @@ namespace Client.Helpers
                     exception,
                     source,
                     LogContext.Actions.Process,
-                    $"异常处理 - 内部异常: {exception.InnerException.Message}");
+                    "异常处理",
+                    new { InnerException = exception.InnerException.Message });
             }
             else
             {

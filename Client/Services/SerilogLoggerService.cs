@@ -78,8 +78,8 @@ namespace Client.Services
             this.LogComponentInfo(
                 LogContext.Components.App, 
                 LogContext.Actions.Initialize, 
-                "日志系统已初始化", 
-                new { MinimumLevel = minimumLevel });
+                "日志系统已初始化",
+                new { LogLevel = minimumLevel });
         }
 
         /// <inheritdoc/>
@@ -129,7 +129,13 @@ namespace Client.Services
         {
             var oldLevel = _levelSwitch.MinimumLevel.ToString();
             _levelSwitch.MinimumLevel = ParseLogLevel(level);
-            this.LogComponentInfoWithParam(LogContext.Components.App, LogContext.Actions.Configure, "LogLevel", level);
+            
+            // 使用一致的格式记录日志
+            this.LogComponentInfo(
+                LogContext.Components.App,
+                LogContext.Actions.Configure,
+                "日志级别已更改",
+                new { OldLevel = oldLevel, NewLevel = level });
         }
 
         /// <summary>
