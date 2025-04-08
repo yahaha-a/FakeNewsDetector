@@ -14,12 +14,14 @@ namespace Client.Services;
 /// <summary>
 /// 配置服务实现
 /// </summary>
-public class ConfigService : IConfigService
+public class ConfigService : IConfigService, IDisposable
 {
     private readonly string _configFilePath;
     private readonly IValidator<AppConfig> _validator;
     private AppConfig _currentConfig;
     private bool _isInitialized;
+    private FileSystemWatcher? _configWatcher;
+    private bool _isDisposed;
 
     /// <summary>
     /// 配置变更事件
@@ -35,6 +37,47 @@ public class ConfigService : IConfigService
         _validator = validator;
         _currentConfig = new AppConfig();
         _isInitialized = false;
+        _isDisposed = false;
+
+        // 初始化文件监视器
+        InitializeFileWatcher();
+    }
+
+    /// <summary>
+    /// 初始化文件监视器
+    /// </summary>
+    private void InitializeFileWatcher()
+    {
+        var configDirectory = Path.GetDirectoryName(_configFilePath);
+        if (string.IsNullOrEmpty(configDirectory))
+        {
+            throw new InvalidOperationException("配置文件路径无效");
+        }
+
+        _configWatcher = new FileSystemWatcher(configDirectory)
+        {
+            Filter = Path.GetFileName(_configFilePath),
+            NotifyFilter = NotifyFilters.LastWrite,
+            EnableRaisingEvents = false
+        };
+
+        _configWatcher.Changed += async (sender, e) =>
+        {
+            if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                try
+                {
+                    // 等待一小段时间，确保文件写入完成
+                    await Task.Delay(100);
+                    await LoadConfigAsync();
+                }
+                catch (Exception ex)
+                {
+                    // 记录错误但不抛出异常
+                    Console.WriteLine($"配置文件监视错误: {ex.Message}");
+                }
+            }
+        };
     }
 
     /// <summary>
@@ -73,14 +116,31 @@ public class ConfigService : IConfigService
     /// </summary>
     public async Task SaveConfigAsync()
     {
-        var options = new JsonSerializerOptions
+        // 暂时禁用文件监视
+        if (_configWatcher != null)
         {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+            _configWatcher.EnableRaisingEvents = false;
+        }
 
-        var json = JsonSerializer.Serialize(_currentConfig, options);
-        await File.WriteAllTextAsync(_configFilePath, json);
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var json = JsonSerializer.Serialize(_currentConfig, options);
+            await File.WriteAllTextAsync(_configFilePath, json);
+        }
+        finally
+        {
+            // 重新启用文件监视
+            if (_configWatcher != null)
+            {
+                _configWatcher.EnableRaisingEvents = true;
+            }
+        }
     }
 
     /// <summary>
@@ -195,5 +255,29 @@ public class ConfigService : IConfigService
     private void OnPropertyChanged(string propertyName, object? oldValue, object? newValue)
     {
         ConfigChanged?.Invoke(this, new ConfigChangedEventArgs(propertyName, oldValue, newValue));
+    }
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_isDisposed)
+        {
+            if (disposing)
+            {
+                _configWatcher?.Dispose();
+            }
+            _isDisposed = true;
+        }
     }
 } 

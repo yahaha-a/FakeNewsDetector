@@ -175,6 +175,14 @@ namespace Client.DependencyInjection
                     try
                     {
                         LogInfo("开始释放依赖注入容器资源");
+                        
+                        // 确保ConfigService被正确释放
+                        var configService = _serviceProvider.GetService<IConfigService>();
+                        if (configService is IDisposable configDisposable)
+                        {
+                            configDisposable.Dispose();
+                        }
+                        
                         disposable.Dispose();
                         LogInfo("依赖注入容器资源释放完成");
                     }
