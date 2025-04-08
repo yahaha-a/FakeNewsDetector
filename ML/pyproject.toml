@@ -2,7 +2,7 @@
 name = "FakeNewsDetector"
 version = "0.1.0"
 description = "虚假新闻检测系统"
-requires-python = ">=3.8"
+requires-python = ">=3.8.1"
 dependencies = [
     "numpy>=1.24.0",
     "pandas>=2.0.0",
