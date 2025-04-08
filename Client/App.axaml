@@ -6,7 +6,8 @@
              xmlns:converters="clr-namespace:Client.Helpers.Converters"
              xmlns:helpers="clr-namespace:Client.Helpers"
              xmlns:material="using:Material.Icons.Avalonia"
-             RequestedThemeVariant="Light">
+             x:DataType="local:App"
+             RequestedThemeVariant="{Binding ThemeVariant}">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
@@ -51,7 +52,7 @@
             <Color x:Key="DangerDarkColor">#B91C1C</Color>
             <Color x:Key="DangerBgColor">#FEF2F2</Color>
             
-            <!-- 中性色 -->
+            <!-- 浅色主题中性色 -->
             <Color x:Key="TextPrimaryColor">#222222</Color>
             <Color x:Key="TextSecondaryColor">#444444</Color>
             <Color x:Key="TextTertiaryColor">#666666</Color>
@@ -59,6 +60,15 @@
             <Color x:Key="BackgroundColor">#F6F8FA</Color>
             <Color x:Key="CardColor">#FFFFFF</Color>
             <Color x:Key="DisabledColor">#A0A0A0</Color>
+            
+            <!-- 深色主题中性色 -->
+            <Color x:Key="DarkTextPrimaryColor">#FFFFFF</Color>
+            <Color x:Key="DarkTextSecondaryColor">#CCCCCC</Color>
+            <Color x:Key="DarkTextTertiaryColor">#999999</Color>
+            <Color x:Key="DarkBorderColor">#333333</Color>
+            <Color x:Key="DarkBackgroundColor">#1A1A1A</Color>
+            <Color x:Key="DarkCardColor">#2D2D2D</Color>
+            <Color x:Key="DarkDisabledColor">#666666</Color>
             
             <!-- 刷子资源 -->
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
@@ -83,6 +93,7 @@
             <SolidColorBrush x:Key="DangerDarkBrush" Color="{StaticResource DangerDarkColor}"/>
             <SolidColorBrush x:Key="DangerBgBrush" Color="{StaticResource DangerBgColor}"/>
             
+            <!-- 浅色主题文本刷子 -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
             <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
@@ -90,6 +101,15 @@
             <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
             <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}"/>
             <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}"/>
+            
+            <!-- 深色主题文本刷子 -->
+            <SolidColorBrush x:Key="DarkTextPrimaryBrush" Color="{StaticResource DarkTextPrimaryColor}"/>
+            <SolidColorBrush x:Key="DarkTextSecondaryBrush" Color="{StaticResource DarkTextSecondaryColor}"/>
+            <SolidColorBrush x:Key="DarkTextTertiaryBrush" Color="{StaticResource DarkTextTertiaryColor}"/>
+            <SolidColorBrush x:Key="DarkBorderBrush" Color="{StaticResource DarkBorderColor}"/>
+            <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}"/>
+            <SolidColorBrush x:Key="DarkCardBrush" Color="{StaticResource DarkCardColor}"/>
+            <SolidColorBrush x:Key="DarkDisabledBrush" Color="{StaticResource DarkDisabledColor}"/>
         </ResourceDictionary>
     </Application.Resources>
   
@@ -98,11 +118,11 @@
         
         <!-- 卡片样式 -->
         <Style Selector="Border.Card">
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource CardBrush}" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="16" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#E0E0E0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         </Style>
         
         <!-- 无边框按钮样式 -->
@@ -115,21 +135,25 @@
         <Style Selector="TextBlock.H1">
             <Setter Property="FontSize" Value="32" />
             <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
         
         <Style Selector="TextBlock.H2">
             <Setter Property="FontSize" Value="24" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
         
         <Style Selector="TextBlock.H3">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
         
         <Style Selector="TextBlock.H4">
             <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
         
         <semi:SemiTheme Locale="zh-CN" />
@@ -150,7 +174,7 @@
 
         <!-- 标题栏样式 -->
         <Style Selector="Border.AppTitleBar">
-            <Setter Property="Background" Value="#1861DE" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
             <Setter Property="Height" Value="68" />
             <Setter Property="Padding" Value="12" />
             <Setter Property="CornerRadius" Value="10,10,0,0" />
@@ -163,6 +187,7 @@
             <Setter Property="Padding" Value="14,12" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="Transitions">
                 <Setter.Value>
                     <Transitions>
@@ -175,6 +200,7 @@
         <Style Selector="Button.NavButton:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.01)" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBgHoverBrush}" />
         </Style>
 
         <!-- 导航按钮选中样式 -->
@@ -185,8 +211,48 @@
 
         <!-- 激活导航按钮样式 -->
         <Style Selector="Button.NavButton.Active">
-            <Setter Property="Background" Value="#EFF6FF" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBgBrush}" />
             <Setter Property="Opacity" Value="1" />
+        </Style>
+
+        <!-- 深色主题样式 -->
+        <Style Selector=":root:theme-dark TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource DarkTextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark Button">
+            <Setter Property="Foreground" Value="{DynamicResource DarkTextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark Border">
+            <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBorderBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark Panel">
+            <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark Window">
+            <Setter Property="Background" Value="{DynamicResource DarkBackgroundBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource DarkTextPrimaryBrush}" />
+            <Setter Property="Background" Value="{DynamicResource DarkCardBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBorderBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource DarkTextPrimaryBrush}" />
+            <Setter Property="Background" Value="{DynamicResource DarkCardBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBorderBrush}" />
+        </Style>
+
+        <Style Selector=":root:theme-dark ToggleSwitch">
+            <Setter Property="Foreground" Value="{DynamicResource DarkTextPrimaryBrush}" />
+            <Setter Property="Background" Value="{DynamicResource DarkCardBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBorderBrush}" />
         </Style>
     </Application.Styles>
 </Application>

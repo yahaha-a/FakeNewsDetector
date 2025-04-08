@@ -13,6 +13,8 @@ using Client.Helpers;
 using Client.Helpers.Events;
 using System.IO;
 using Client.Services;
+using Avalonia.Styling;
+using Avalonia.Threading;
 
 namespace Client;
 
@@ -29,10 +31,45 @@ public partial class App : Application
 {
     // 错误通知容器
     private Panel? _notificationHost;
+    private ThemeService? _themeService;
+
+    public ThemeVariant ThemeVariant
+    {
+        get => _themeService?.ThemeVariant ?? ThemeVariant.Light;
+        set
+        {
+            if (_themeService != null)
+            {
+                _themeService.ThemeVariant = value;
+                // 通知主题变更
+                OnThemeChanged();
+            }
+        }
+    }
+
+    private void OnThemeChanged()
+    {
+        // 在UI线程上更新主题
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // 更新主窗口的主题
+                if (desktop.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.RequestedThemeVariant = ThemeVariant;
+                }
+            }
+        });
+    }
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
+        // 初始化主题服务
+        _themeService = ThemeService.Instance;
+        DataContext = this;
     }
 
     /// <summary>
@@ -40,7 +77,17 @@ public partial class App : Application
     /// </summary>
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+        // 移除表达式验证器，以支持 .NET 原生绑定
+        var dataValidationPluginsToRemove = BindingPlugins.DataValidators
+            .OfType<DataAnnotationsValidationPlugin>()
+            .ToList();
+        
+        foreach (var plugin in dataValidationPluginsToRemove)
+        {
+            BindingPlugins.DataValidators.Remove(plugin);
+        }
+        
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             try
             {
@@ -70,7 +117,7 @@ public partial class App : Application
                 LogInfo("App: 已创建主窗口并设置数据上下文");
                 
                 // 设置主窗口
-                desktopLifetime.MainWindow = mainWindow;
+                desktop.MainWindow = mainWindow;
                 // 确保窗口显示
                 mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 mainWindow.Show();
@@ -89,10 +136,6 @@ public partial class App : Application
                 
                 // 导航将在MainWindow的Loaded事件中进行初始化
                 LogInfo("App: 窗口创建完成，导航将在窗口加载时执行");
-                
-                // 注释掉重复导航代码
-                // mainWindowViewModel.NavigateCommand.Execute("Home");
-                // LogInfo("App: 导航到首页");
             }
             catch (Exception ex)
             {
@@ -101,7 +144,7 @@ public partial class App : Application
             }
             
             // 注册应用程序退出事件
-            desktopLifetime.Exit += OnApplicationExit;
+            desktop.Exit += OnApplicationExit;
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -76,6 +76,9 @@ namespace Client.DependencyInjection
                     // 注册设置服务 - 单例模式
                     services.AddSingleton<ISettingsService, SettingsService>();
                     
+                    // 注册主题服务 - 单例模式
+                    services.AddSingleton<ThemeService>(sp => ThemeService.Instance);
+                    
                     // 注册新闻服务 - 单例模式
                     services.AddSingleton<INewsService, MockNewsService>();
                     

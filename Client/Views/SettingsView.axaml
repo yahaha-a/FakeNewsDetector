@@ -32,16 +32,18 @@
                             <TextBlock Text="外观设置" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                         
-                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="32,10">
-                            <TextBlock Grid.Column="0" Text="主题" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="{Binding CurrentTheme}" Margin="10,0" VerticalAlignment="Center" />
-                            <Button Grid.Column="2" Command="{Binding ToggleThemeCommand}" Classes="Outline" Padding="12,6">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <material:MaterialIcon Kind="ThemeLightDark" Width="16" Height="16" />
-                                    <TextBlock Text="切换主题" />
+                        <StackPanel Spacing="16">
+                            <!-- 主题设置 -->
+                            <Border Classes="Card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="H4" Text="主题设置" />
+                                    <ToggleSwitch 
+                                        Content="深色主题"
+                                        IsChecked="{Binding IsDarkThemeEnabled}"
+                                        Command="{Binding ToggleThemeCommand}" />
                                 </StackPanel>
-                            </Button>
-                        </Grid>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
                 

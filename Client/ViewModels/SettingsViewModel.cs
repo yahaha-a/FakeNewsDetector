@@ -7,6 +7,8 @@ using Client.Helpers.Events;
 using Client.Helpers;
 using Client.Constants;
 using Avalonia.Threading;
+using Client.Services;
+using Avalonia.Styling;
 
 namespace Client.ViewModels
 {
@@ -17,6 +19,7 @@ namespace Client.ViewModels
     {
         private readonly ISettingsService _settingsService;
         private readonly ILoggerService _logger;
+        private readonly ThemeService _themeService;
         private bool _isBusy;
 
         /// <summary>
@@ -61,10 +64,11 @@ namespace Client.ViewModels
         /// <summary>
         /// 构造函数
         /// </summary>
-        public SettingsViewModel(ISettingsService settingsService, ILoggerService logger)
+        public SettingsViewModel(ISettingsService settingsService, ILoggerService logger, ThemeService themeService)
         {
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _themeService = themeService;
 
             _logger.Information("初始化设置视图模型");
             
@@ -74,6 +78,9 @@ namespace Client.ViewModels
             {
                 await LoadSettingsAsync();
             });
+
+            // 初始化主题状态
+            IsDarkThemeEnabled = _themeService.ThemeVariant == ThemeVariant.Dark;
         }
 
         /// <summary>
@@ -122,6 +129,10 @@ namespace Client.ViewModels
                 IsDarkThemeEnabled = !IsDarkThemeEnabled;
                 CurrentTheme = IsDarkThemeEnabled ? "深色" : "浅色";
                 
+                // 切换主题
+                _themeService.ToggleTheme();
+                
+                // 保存主题设置
                 await _settingsService.SaveSettingAsync("IsDarkTheme", IsDarkThemeEnabled);
                 
                 // 发布主题变更事件
