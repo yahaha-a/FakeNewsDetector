@@ -15,6 +15,8 @@ using System.IO;
 using Client.Services;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using System.Threading.Tasks;
+using Serilog;
 
 namespace Client;
 
@@ -29,9 +31,16 @@ public static class NotificationConstants
 
 public partial class App : Application
 {
-    // 错误通知容器
+    private readonly ILogger _logger;
     private Panel? _notificationHost;
     private ThemeService? _themeService;
+    private bool _isThemeServiceInitialized = false;
+    private readonly object _themeLock = new object();
+
+    public App()
+    {
+        _logger = Log.ForContext<App>();
+    }
 
     public ThemeVariant ThemeVariant
     {
@@ -40,24 +49,50 @@ public partial class App : Application
         {
             if (_themeService != null)
             {
-                _themeService.ThemeVariant = value;
-                // 通知主题变更
-                OnThemeChanged();
+                lock (_themeLock)
+                {
+                    var oldTheme = _themeService.ThemeVariant;
+                    _themeService.ThemeVariant = value;
+                    // 通知主题变更
+                    OnThemeChanged(oldTheme, value);
+                }
             }
         }
     }
 
-    private void OnThemeChanged()
+    private void OnThemeChanged(ThemeVariant oldTheme, ThemeVariant newTheme)
     {
         // 在UI线程上更新主题
         Dispatcher.UIThread.Post(() =>
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            try
             {
-                // 更新主窗口的主题
-                if (desktop.MainWindow is MainWindow mainWindow)
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    mainWindow.RequestedThemeVariant = ThemeVariant;
+                    // 更新所有窗口的主题
+                    foreach (var window in desktop.Windows)
+                    {
+                        window.RequestedThemeVariant = newTheme;
+                    }
+
+                    // 发布主题变更事件
+                    EventAggregator.Instance.Publish(new ThemeChangedEvent(oldTheme, newTheme));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "主题更新失败");
+                // 尝试回滚主题
+                try
+                {
+                    if (_themeService != null)
+                    {
+                        _themeService.ThemeVariant = oldTheme;
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.Error(rollbackEx, "主题回滚失败");
                 }
             }
         });
@@ -65,11 +100,62 @@ public partial class App : Application
 
     public override void Initialize()
     {
-        AvaloniaXamlLoader.Load(this);
-        
-        // 初始化主题服务
-        _themeService = ThemeService.Instance;
-        DataContext = this;
+        try
+        {
+            AvaloniaXamlLoader.Load(this);
+            
+            // 延迟初始化主题服务
+            InitializeThemeServiceAsync();
+            
+            DataContext = this;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "应用程序初始化失败");
+            throw;
+        }
+    }
+
+    private async void InitializeThemeServiceAsync()
+    {
+        try
+        {
+            // 等待应用程序完全初始化
+            await Task.Delay(100); // 给应用程序一些时间完成初始化
+            
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("应用程序未初始化");
+            }
+
+            // 初始化主题服务
+            _themeService = ThemeService.Instance;
+            
+            // 订阅系统主题变更
+            Application.Current.ActualThemeVariantChanged += OnSystemThemeChanged;
+            
+            _isThemeServiceInitialized = true;
+            
+            _logger.Information("主题服务初始化完成");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "主题服务初始化失败");
+            // 使用默认主题
+            _themeService = ThemeService.Instance;
+            _themeService.ThemeVariant = ThemeVariant.Light;
+            _isThemeServiceInitialized = true;
+        }
+    }
+
+    private void OnSystemThemeChanged(object? sender, EventArgs e)
+    {
+        if (_themeService != null && _themeService.ThemeVariant == ThemeVariant.Default)
+        {
+            // 如果当前主题是跟随系统，则更新主题
+            var systemTheme = Application.Current?.ActualThemeVariant ?? ThemeVariant.Light;
+            ThemeVariant = systemTheme;
+        }
     }
 
     /// <summary>
@@ -77,77 +163,120 @@ public partial class App : Application
     /// </summary>
     public override void OnFrameworkInitializationCompleted()
     {
-        // 移除表达式验证器，以支持 .NET 原生绑定
-        var dataValidationPluginsToRemove = BindingPlugins.DataValidators
-            .OfType<DataAnnotationsValidationPlugin>()
-            .ToList();
-        
-        foreach (var plugin in dataValidationPluginsToRemove)
+        try
         {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
-        
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            try
+            // 移除表达式验证器，以支持 .NET 原生绑定
+            var dataValidationPluginsToRemove = BindingPlugins.DataValidators
+                .OfType<DataAnnotationsValidationPlugin>()
+                .ToList();
+            
+            foreach (var plugin in dataValidationPluginsToRemove)
             {
-                LogInfo("App: 框架初始化完成");
+                BindingPlugins.DataValidators.Remove(plugin);
+            }
+            
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                _logger.Information("App: 框架初始化完成");
                 
                 // 避免Avalonia和CommunityToolkit的重复验证
                 DisableAvaloniaDataAnnotationValidation();
-                LogInfo("App: 禁用了重复数据验证");
-                
-                // 依赖注入容器已在Program.cs中初始化，此处不再重复初始化
+                _logger.Information("App: 禁用了重复数据验证");
                 
                 // 初始化事件聚合器订阅
                 InitializeEventSubscriptions();
-                LogInfo("App: 事件订阅已初始化");
+                _logger.Information("App: 事件订阅已初始化");
                 
                 // 从依赖注入容器获取主窗口ViewModel
                 var mainWindowViewModel = DependencyContainer.GetService<MainWindowViewModel>();
                 if (mainWindowViewModel == null)
                 {
-                    LogError("App: 无法创建主窗口视图模型");
+                    _logger.Error("App: 无法创建主窗口视图模型");
                     throw new InvalidOperationException("无法创建主窗口视图模型");
                 }
                 
                 // 创建主窗口并设置数据上下文
                 var mainWindow = new MainWindow();
                 mainWindow.DataContext = mainWindowViewModel;
-                LogInfo("App: 已创建主窗口并设置数据上下文");
+                _logger.Information("App: 已创建主窗口并设置数据上下文");
                 
                 // 设置主窗口
                 desktop.MainWindow = mainWindow;
                 // 确保窗口显示
                 mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 mainWindow.Show();
-                LogInfo("App: 已设置主窗口并显示");
+                _logger.Information("App: 已设置主窗口并显示");
                 
                 // 查找通知区域控件
                 _notificationHost = mainWindow.FindControl<Panel>("NotificationArea");
                 if (_notificationHost == null)
                 {
-                    LogError("App: 无法找到通知区域控件");
+                    _logger.Error("App: 无法找到通知区域控件");
                 }
                 else
                 {
-                    LogInfo("App: 已找到通知区域控件");
+                    _logger.Information("App: 已找到通知区域控件");
                 }
                 
-                // 导航将在MainWindow的Loaded事件中进行初始化
-                LogInfo("App: 窗口创建完成，导航将在窗口加载时执行");
+                // 等待主题服务初始化完成
+                if (!_isThemeServiceInitialized)
+                {
+                    _logger.Warning("App: 主题服务未初始化完成，等待初始化");
+                    Task.Run(async () =>
+                    {
+                        while (!_isThemeServiceInitialized)
+                        {
+                            await Task.Delay(100);
+                        }
+                        // 应用初始主题
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            if (_themeService != null)
+                            {
+                                mainWindow.RequestedThemeVariant = _themeService.ThemeVariant;
+                            }
+                        });
+                    });
+                }
+                else
+                {
+                    // 直接应用主题
+                    mainWindow.RequestedThemeVariant = _themeService?.ThemeVariant ?? ThemeVariant.Light;
+                }
             }
-            catch (Exception ex)
-            {
-                // 处理并记录异常
-                HandleStartupException(ex);
-            }
-            
-            // 注册应用程序退出事件
-            desktop.Exit += OnApplicationExit;
+        }
+        catch (Exception ex)
+        {
+            HandleStartupException(ex);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// 初始化事件订阅
+    /// </summary>
+    private void InitializeEventSubscriptions()
+    {
+        // 订阅错误事件
+        EventAggregator.Instance.Subscribe<ErrorOccurredEvent>(HandleErrorEvent);
+        
+        // 订阅设置变更事件
+        EventAggregator.Instance.Subscribe<SettingsChangedEvent>(HandleSettingsChangedEvent);
+        
+        // 订阅主题变更事件
+        EventAggregator.Instance.Subscribe<ThemeChangedEvent>(HandleThemeChangedEvent);
+        
+        // 订阅分析完成事件
+        EventAggregator.Instance.Subscribe<NewsAnalysisCompletedEvent>(HandleAnalysisCompletedEvent);
+    }
+
+    private void HandleThemeChangedEvent(ThemeChangedEvent themeEvent)
+    {
+        _logger.Information($"主题已从 {themeEvent.OldTheme} 切换到 {themeEvent.NewTheme}");
+        
+        // 可以在这里添加额外的主题变更处理逻辑
+        // 例如：更新状态栏、通知用户等
     }
 
     /// <summary>
@@ -172,21 +301,6 @@ public partial class App : Application
         {
             LogError($"无法发布错误事件: {publishEx.Message}");
         }
-    }
-
-    /// <summary>
-    /// 初始化事件订阅
-    /// </summary>
-    private void InitializeEventSubscriptions()
-    {
-        // 订阅错误事件
-        EventAggregator.Instance.Subscribe<ErrorOccurredEvent>(HandleErrorEvent);
-        
-        // 订阅设置变更事件
-        EventAggregator.Instance.Subscribe<SettingsChangedEvent>(HandleSettingsChangedEvent);
-        
-        // 订阅分析完成事件
-        EventAggregator.Instance.Subscribe<NewsAnalysisCompletedEvent>(HandleAnalysisCompletedEvent);
     }
 
     /// <summary>
