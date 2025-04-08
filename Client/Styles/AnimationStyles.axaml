@@ -1,0 +1,132 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- 淡入淡出动画 -->
+    <Style Selector=":is(Control).FadeIn">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeIn:loaded">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    
+    <!-- 从下滑入动画 -->
+    <Style Selector=":is(Control).SlideUp">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="TranslateTransform.Y" Value="20"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                <DoubleTransition Property="TranslateTransform.Y" Duration="0:0:0.3" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).SlideUp:loaded">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="TranslateTransform.Y" Value="0"/>
+    </Style>
+    
+    <!-- 从右滑入动画 -->
+    <Style Selector=":is(Control).SlideLeft">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="TranslateTransform.X" Value="20"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                <DoubleTransition Property="TranslateTransform.X" Duration="0:0:0.3" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).SlideLeft:loaded">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="TranslateTransform.X" Value="0"/>
+    </Style>
+    
+    <!-- 缩放动画 -->
+    <Style Selector=":is(Control).ScaleIn">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+        <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                <DoubleTransition Property="ScaleTransform.ScaleX" Duration="0:0:0.3" Easing="CubicEaseOut"/>
+                <DoubleTransition Property="ScaleTransform.ScaleY" Duration="0:0:0.3" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).ScaleIn:loaded">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+    </Style>
+    
+    <!-- 按钮点击效果 -->
+    <Style Selector="Button.PulseEffect:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.96)"/>
+    </Style>
+    
+    <!-- 卡片悬停效果 -->
+    <Style Selector="Border.HoverLift">
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+            </Transitions>
+        </Setter>
+        <Setter Property="RenderTransform" Value="translateY(0)"/>
+    </Style>
+    
+    <Style Selector="Border.HoverLift:pointerover">
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="#CCCCCC"/>
+        <Setter Property="RenderTransform" Value="translateY(-3px)"/>
+    </Style>
+    
+    <!-- 淡入延迟序列 -->
+    <Style Selector=":is(Control).FadeInDelay1">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Delay="0:0:0.1"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeInDelay1:loaded">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeInDelay2">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Delay="0:0:0.2"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeInDelay2:loaded">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeInDelay3">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Delay="0:0:0.3"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector=":is(Control).FadeInDelay3:loaded">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+</Styles> 

@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Client.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Client.Views.TestView"
+             x:DataType="vm:TestViewModel">
+
+  <Design.DataContext>
+    <vm:TestViewModel/>
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="15">
+      <TextBlock Text="测试功能" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+
+      <!-- 导航参数区域 -->
+      <Border Background="#E9F5FF" CornerRadius="5" Padding="15" BorderBrush="#AADDFF" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="导航参数" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding ParameterInfo}" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <!-- URL分析测试区域 -->
+      <Border Background="#F5F5F5" CornerRadius="5" Padding="15" BorderBrush="#DDDDDD" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="URL分析测试" FontSize="18" FontWeight="SemiBold"/>
+          
+          <TextBox Text="{Binding Url}" Watermark="输入新闻URL..."
+                  Width="500" HorizontalAlignment="Left"/>
+          <TextBlock Text="{Binding UrlError}" Foreground="Red" IsVisible="{Binding UrlError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          
+          <Button Content="分析URL" Command="{Binding AnalyzeUrlCommand}"
+                  HorizontalAlignment="Left" Classes="Primary"/>
+        </StackPanel>
+      </Border>
+
+      <!-- 内容分析测试区域 -->
+      <Border Background="#F5F5F5" CornerRadius="5" Padding="15" BorderBrush="#DDDDDD" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="内容分析测试" FontSize="18" FontWeight="SemiBold"/>
+          
+          <TextBox Text="{Binding Content}" Watermark="输入新闻内容..."
+                  Height="150" AcceptsReturn="True" TextWrapping="Wrap"/>
+          <TextBlock Text="{Binding ContentError}" Foreground="Red" IsVisible="{Binding ContentError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          
+          <Button Content="分析内容" Command="{Binding AnalyzeContentCommand}"
+                  HorizontalAlignment="Left" Classes="Primary"/>
+        </StackPanel>
+      </Border>
+
+      <!-- 异常测试区域 -->
+      <Border Background="#F5F5F5" CornerRadius="5" Padding="15" BorderBrush="#DDDDDD" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="异常测试" FontSize="18" FontWeight="SemiBold"/>
+          
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="触发普通异常" Command="{Binding ThrowExceptionCommand}"
+                    HorizontalAlignment="Left"/>
+            <Button Content="触发业务异常" Command="{Binding ThrowBusinessExceptionCommand}"
+                    HorizontalAlignment="Left"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- 事件测试区域 -->
+      <Border Background="#F5F5F5" CornerRadius="5" Padding="15" BorderBrush="#DDDDDD" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="事件测试" FontSize="18" FontWeight="SemiBold"/>
+          
+          <Button Content="发布测试事件" Command="{Binding PublishEventCommand}"
+                  HorizontalAlignment="Left"/>
+        </StackPanel>
+      </Border>
+
+      <!-- 分析结果显示 -->
+      <Border Background="#F5F5F5" CornerRadius="5" Padding="15" BorderBrush="#DDDDDD" BorderThickness="1" 
+              IsVisible="{Binding HasAnalysisResult}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="分析结果" FontSize="18" FontWeight="SemiBold"/>
+          
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,10,0,0">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="标题：" FontWeight="Bold"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AnalysisResult.Title}" TextWrapping="Wrap"/>
+            
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="判断：" FontWeight="Bold" Margin="0,5,0,0"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AnalysisResult.IsLikely, StringFormat='{}{0:P0}的可能性是假新闻'}" 
+                       Foreground="{Binding AnalysisResult.IsLikely, Converter={StaticResource ProbabilityToBrushConverter}}" 
+                       FontWeight="Bold" Margin="0,5,0,0"/>
+            
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="说明：" FontWeight="Bold" Margin="0,5,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AnalysisResult.Reason}" 
+                       TextWrapping="Wrap" Margin="0,5,0,0"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl> 

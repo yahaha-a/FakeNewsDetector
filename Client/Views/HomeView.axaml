@@ -1,0 +1,227 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Client.ViewModels"
+             xmlns:material="using:Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Client.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+    
+    <Design.DataContext>
+        <vm:HomeViewModel />
+    </Design.DataContext>
+    
+    <ScrollViewer>
+        <StackPanel Spacing="18" Margin="4">
+            <!-- 欢迎区域 -->
+            <Border Classes="Card" Background="White" Padding="20" CornerRadius="10">
+                <DockPanel>
+                    <material:MaterialIcon DockPanel.Dock="Right" Kind="Newspaper" Width="90" Height="90" 
+                                         Foreground="{DynamicResource PrimaryBrush}" Opacity="0.9" Margin="20,0,0,0" />
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="欢迎使用虚假新闻检测系统" 
+                                 Classes="H3" 
+                                 TextWrapping="Wrap" />
+                        <TextBlock Text="本系统利用机器学习技术，帮助您快速分析和识别可能的虚假新闻内容，提高信息甄别能力，共建清朗网络空间。" 
+                                 Classes="Body" 
+                                 TextWrapping="Wrap"
+                                 LineHeight="24" />
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                            <Button Classes="Primary Large" Command="{Binding StartDetectionCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:MaterialIcon Kind="Magnify" Width="18" Height="18" />
+                                    <TextBlock Text="开始检测" FontWeight="Medium" />
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Classes="Outline Large" Command="{Binding NavigateWithTextParamCommand}" ToolTip.Tip="测试参数传递">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:MaterialIcon Kind="FileDocument" Width="18" Height="18" />
+                                    <TextBlock Text="文本参数" FontWeight="Medium" />
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Classes="Outline Large" Command="{Binding NavigateWithObjectParamCommand}" ToolTip.Tip="测试对象参数传递">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:MaterialIcon Kind="FileMultiple" Width="18" Height="18" />
+                                    <TextBlock Text="对象参数" FontWeight="Medium" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            
+            <!-- 统计信息区域 -->
+            <Border Classes="Card" Background="White" Padding="20" CornerRadius="10">
+                <StackPanel Spacing="16">
+                    <DockPanel>
+                        <material:MaterialIcon DockPanel.Dock="Left" Kind="ChartBox" Width="24" Height="24" 
+                                              Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,10,0" />
+                        <TextBlock Text="检测统计" Classes="H5" />
+                    </DockPanel>
+                    
+                    <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto" Margin="0,5,0,0">
+                        <!-- 第一行统计 -->
+                        <Border Grid.Row="0" Grid.Column="0" Margin="5" Background="{DynamicResource PrimaryBrush}" Padding="16" CornerRadius="6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <material:MaterialIcon Kind="Counter" Width="22" Height="22" Foreground="White" />
+                                    <TextBlock Text="总检测数" Foreground="White" Classes="Label" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding TotalDetections}" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="0" Grid.Column="1" Margin="5" Background="{DynamicResource SuccessBrush}" Padding="16" CornerRadius="6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <material:MaterialIcon Kind="CheckCircle" Width="22" Height="22" Foreground="White" />
+                                    <TextBlock Text="真实新闻" Foreground="White" Classes="Label" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding RealNewsCount}" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="0" Grid.Column="2" Margin="5" Background="{DynamicResource WarningBrush}" Padding="16" CornerRadius="6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <material:MaterialIcon Kind="Alert" Width="22" Height="22" Foreground="White" />
+                                    <TextBlock Text="可疑新闻" Foreground="White" Classes="Label" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding SuspiciousNewsCount}" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="0" Grid.Column="3" Margin="5" Background="{DynamicResource DangerBrush}" Padding="16" CornerRadius="6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <material:MaterialIcon Kind="CloseCircle" Width="22" Height="22" Foreground="White" />
+                                    <TextBlock Text="虚假新闻" Foreground="White" Classes="Label" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding FakeNewsCount}" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- 第二行图表 -->
+                        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,15,5,5" Padding="16" Background="#F9FAFB" CornerRadius="6">
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                                    <material:MaterialIcon DockPanel.Dock="Left" Kind="ChartLine" Width="18" Height="18" 
+                                                         Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,8,0" />
+                                    <TextBlock Text="近7天检测趋势" VerticalAlignment="Center" Classes="Label" />
+                                </DockPanel>
+                                <Canvas Height="150">
+                                    <!-- 这里可以添加实际的图表控件 -->
+                                    <Rectangle Fill="{DynamicResource PrimaryBrush}" Width="300" Height="150" Opacity="0.1" />
+                                    <Path Stroke="{DynamicResource PrimaryBrush}" StrokeThickness="3" 
+                                        Data="M0,100 L50,80 L100,120 L150,40 L200,60 L250,30 L300,50" />
+                                    <TextBlock Text="趋势图示意" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                             Canvas.Left="100" Canvas.Top="60" Opacity="0.6" Foreground="{DynamicResource TextTertiaryBrush}" />
+                                </Canvas>
+                            </DockPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Margin="5,15,5,5" Padding="16" Background="#F9FAFB" CornerRadius="6">
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                                    <material:MaterialIcon DockPanel.Dock="Left" Kind="ChartPie" Width="18" Height="18" 
+                                                         Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,8,0" />
+                                    <TextBlock Text="检测结果分布" VerticalAlignment="Center" Classes="Label" />
+                                </DockPanel>
+                                <Canvas Height="150">
+                                    <!-- 实现简单的饼图 -->
+                                    <Ellipse Fill="{DynamicResource SuccessBrush}" Width="150" Height="150" Canvas.Left="75" Canvas.Top="0" Opacity="0.8" />
+                                    <Path Fill="{DynamicResource WarningBrush}" 
+                                         Data="M150,75 L150,0 A75,75 0 0,1 225,75 Z" Canvas.Left="0" Canvas.Top="0" Opacity="0.8" />
+                                    <Path Fill="{DynamicResource DangerBrush}" 
+                                         Data="M150,75 L225,75 A75,75 0 0,1 180,140 Z" Canvas.Left="0" Canvas.Top="0" Opacity="0.8" />
+                                    <TextBlock Text="饼图示意" Canvas.Left="120" Canvas.Top="60" Opacity="0.6" Foreground="{DynamicResource TextTertiaryBrush}" />
+                                </Canvas>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- 热点虚假新闻警示 -->
+            <Border Classes="Card" Background="White" Padding="20" CornerRadius="10">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <material:MaterialIcon DockPanel.Dock="Left" Kind="AlertCircleOutline" Width="24" Height="24" 
+                                              Foreground="{DynamicResource DangerBrush}" Margin="0,0,10,0" />
+                        <TextBlock Text="热点虚假新闻警示" Classes="H5" />
+                    </DockPanel>
+                    
+                    <ListBox Background="Transparent" MaxHeight="200" Margin="0,6,0,0" Padding="0">
+                        <ListBoxItem Padding="10,8" Background="{DynamicResource DangerBgBrush}" CornerRadius="6" Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <material:MaterialIcon Grid.Column="0" Kind="AlertCircle" Foreground="{DynamicResource DangerBrush}" Width="24" Height="24" />
+                                <TextBlock Grid.Column="1" Text="研究发现：某种常见食物可以预防新冠肺炎" Margin="12,0,0,0" Classes="Label" />
+                                <TextBlock Grid.Column="2" Text="2023-05-20" Classes="Caption" />
+                            </Grid>
+                        </ListBoxItem>
+                        <ListBoxItem Padding="10,8" Background="{DynamicResource WarningBgBrush}" CornerRadius="6" Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <material:MaterialIcon Grid.Column="0" Kind="AlertCircle" Foreground="{DynamicResource WarningBrush}" Width="24" Height="24" />
+                                <TextBlock Grid.Column="1" Text="国际组织宣布：全球气候变化已不可逆转" Margin="12,0,0,0" Classes="Label" />
+                                <TextBlock Grid.Column="2" Text="2023-05-18" Classes="Caption" />
+                            </Grid>
+                        </ListBoxItem>
+                        <ListBoxItem Padding="10,8" Background="{DynamicResource DangerBgBrush}" CornerRadius="6">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <material:MaterialIcon Grid.Column="0" Kind="AlertCircle" Foreground="{DynamicResource DangerBrush}" Width="24" Height="24" />
+                                <TextBlock Grid.Column="1" Text="大型科技公司声称发现能源转换新方法，效率提高1000倍" Margin="12,0,0,0" Classes="Label" />
+                                <TextBlock Grid.Column="2" Text="2023-05-15" Classes="Caption" />
+                            </Grid>
+                        </ListBoxItem>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+            
+            <!-- 快速工具 -->
+            <Border Classes="Card" Background="White" Padding="20" CornerRadius="10">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <material:MaterialIcon DockPanel.Dock="Left" Kind="Tools" Width="24" Height="24" 
+                                              Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,10,0" />
+                        <TextBlock Text="快速工具" Classes="H5" />
+                    </DockPanel>
+                    
+                    <Grid ColumnDefinitions="*,*,*" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Margin="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                               Classes="ToolButton">
+                            <StackPanel>
+                                <material:MaterialIcon Kind="Link" Width="26" Height="26" HorizontalAlignment="Center" 
+                                                      Margin="0,4,0,8" Foreground="{DynamicResource PrimaryBrush}" />
+                                <TextBlock Text="URL检测" HorizontalAlignment="Center" Margin="0,0,0,4" 
+                                          Foreground="{DynamicResource PrimaryBrush}" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Grid.Column="1" Margin="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                               Classes="ToolButton">
+                            <StackPanel>
+                                <material:MaterialIcon Kind="FileUpload" Width="26" Height="26" HorizontalAlignment="Center" 
+                                                      Margin="0,4,0,8" Foreground="{DynamicResource PrimaryBrush}" />
+                                <TextBlock Text="批量检测" HorizontalAlignment="Center" Margin="0,0,0,4" 
+                                          Foreground="{DynamicResource PrimaryBrush}" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Grid.Column="2" Margin="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                               Classes="ToolButton">
+                            <StackPanel>
+                                <material:MaterialIcon Kind="FileExport" Width="26" Height="26" HorizontalAlignment="Center" 
+                                                      Margin="0,4,0,8" Foreground="{DynamicResource PrimaryBrush}" />
+                                <TextBlock Text="导出报告" HorizontalAlignment="Center" Margin="0,0,0,4" 
+                                          Foreground="{DynamicResource PrimaryBrush}" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl> 

@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Client.ViewModels.Controls"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="100"
+             x:Class="Client.Views.Controls.ErrorNotification"
+             x:DataType="vm:ErrorNotificationViewModel">
+  
+  <Design.DataContext>
+    <vm:ErrorNotificationViewModel />
+  </Design.DataContext>
+
+  <Border Background="#FFEBE8"
+          CornerRadius="4" MinHeight="60" Width="350" 
+          BorderThickness="1" BorderBrush="#DDDDDD"
+          Margin="5">
+    <Grid ColumnDefinitions="Auto,*,Auto" Margin="10">
+      <!-- 图标 -->
+      <TextBlock Grid.Column="0" Text="⚠️"
+               FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+      
+      <!-- 内容 -->
+      <StackPanel Grid.Column="1" Margin="5,0">
+        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" 
+                 TextWrapping="Wrap" Margin="0,0,0,5"/>
+        
+        <TextBlock Text="{Binding Message}" 
+                 TextWrapping="Wrap" MaxLines="3" 
+                 TextTrimming="CharacterEllipsis"/>
+      </StackPanel>
+      
+      <!-- 关闭按钮 -->
+      <Button Grid.Column="2" 
+             Content="✕"
+             Command="{Binding CloseCommand}"
+             VerticalAlignment="Top" HorizontalAlignment="Right"
+             Padding="5,0" Background="Transparent"/>
+    </Grid>
+  </Border>
+</UserControl> 

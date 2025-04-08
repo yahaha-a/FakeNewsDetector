@@ -1,0 +1,121 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Client.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:material="using:Material.Icons.Avalonia"
+        xmlns:controls="using:Client.Views.Controls"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="Client.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="虚假新闻检测系统"
+        WindowStartupLocation="CenterScreen"
+        Background="#F6F8FA"
+        CornerRadius="10"
+        MinWidth="1000" MinHeight="700">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <!-- 设置Grid的圆角，确保整个应用内容区域都有圆角 -->
+        <Border CornerRadius="10" Margin="5" Background="Transparent">
+            <Grid ColumnDefinitions="250, *">
+                <!-- 左侧导航菜单 -->
+                <Border Grid.Column="0" Classes="Card" Margin="12,12,6,12" CornerRadius="10" Background="White" BorderThickness="1" BorderBrush="#E0E0E0">
+                    <DockPanel>
+                        <!-- 标题栏 -->
+                        <Border DockPanel.Dock="Top" Classes="AppTitleBar">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                    <GradientStop Offset="0" Color="#1861DE"/>
+                                    <GradientStop Offset="1" Color="#3373E1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Grid.Column="0" Background="White" Width="40" Height="40" CornerRadius="20" Margin="0,0,12,0">
+                                    <material:MaterialIcon Kind="ShieldSearch" Width="24" Height="24" Foreground="#1861DE" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="虚假新闻检测系统" Classes="AppTitle" VerticalAlignment="Center" Margin="0,4,0,0" />
+                            </Grid>
+                        </Border>
+                        
+                        <!-- 导航菜单 -->
+                        <StackPanel Spacing="12" Margin="12,20,12,20">
+                            <!-- 主页按钮 -->
+                            <Button Classes="NavButton" Command="{Binding NavigateCommand}" CommandParameter="Home" Background="Transparent" Margin="8,15,8,0" HorizontalAlignment="Stretch">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <material:MaterialIcon Grid.Column="0" Kind="Home" Width="24" Height="24" Foreground="#1861DE"/>
+                                    <TextBlock Grid.Column="1" Text="主页" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#1861DE"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- 检测按钮 -->
+                            <Button Classes="NavButton" Command="{Binding NavigateCommand}" CommandParameter="Detection" Background="Transparent" Margin="8,15,8,0" HorizontalAlignment="Stretch">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <material:MaterialIcon Grid.Column="0" Kind="Magnify" Width="24" Height="24" Foreground="#1861DE"/>
+                                    <TextBlock Grid.Column="1" Text="检测" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#1861DE"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- 历史记录按钮 -->
+                            <Button Classes="NavButton" Command="{Binding NavigateCommand}" CommandParameter="History" Background="Transparent" Margin="8,15,8,0" HorizontalAlignment="Stretch">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <material:MaterialIcon Grid.Column="0" Kind="History" Width="24" Height="24" Foreground="#1861DE"/>
+                                    <TextBlock Grid.Column="1" Text="历史" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#1861DE"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- 统计按钮 -->
+                            <Button Classes="NavButton" Command="{Binding NavigateCommand}" CommandParameter="Statistics" Background="Transparent" Margin="8,15,8,0" HorizontalAlignment="Stretch">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <material:MaterialIcon Grid.Column="0" Kind="ChartBar" Width="24" Height="24" Foreground="#1861DE"/>
+                                    <TextBlock Grid.Column="1" Text="统计" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#1861DE"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- 设置按钮 -->
+                            <Button Classes="NavButton" Command="{Binding NavigateCommand}" CommandParameter="Settings" Background="Transparent" Margin="8,15,8,0" HorizontalAlignment="Stretch">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <material:MaterialIcon Grid.Column="0" Kind="Settings" Width="24" Height="24" Foreground="#1861DE"/>
+                                    <TextBlock Grid.Column="1" Text="设置" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#1861DE"/>
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- 右侧内容区 -->
+                <Grid Grid.Column="1" RowDefinitions="Auto,*" Margin="8,12,12,12">
+                    <!-- 顶部状态栏 -->
+                    <Border Grid.Row="0" Height="56" Padding="16" CornerRadius="10" Background="White" BorderThickness="1" BorderBrush="#E0E0E0">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                <material:MaterialIcon Kind="ChevronRight" Width="20" Height="20" Foreground="#1861DE" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentPageTitle}" FontSize="18" FontWeight="Medium" VerticalAlignment="Center" Foreground="#222222" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- 主内容区 -->
+                    <Border Grid.Row="1" Margin="0,12,0,0" CornerRadius="10" Padding="12" Background="White" BorderThickness="1" BorderBrush="#E0E0E0">
+                        <ContentControl x:Name="PageContent" Content="{Binding CurrentViewModel}"/>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+        
+        <!-- 通知区域 -->
+        <Panel x:Name="NotificationArea" 
+              HorizontalAlignment="Right" 
+              VerticalAlignment="Bottom" 
+              Width="400" 
+              Margin="20" 
+              ZIndex="100">
+        </Panel>
+    </Grid>
+</Window>

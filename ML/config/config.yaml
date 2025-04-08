@@ -1,0 +1,71 @@
+# FakeNewsDetector配置文件
+
+# 数据配置
+data:
+  train_path: "data/train.news.csv"
+  test_path: "data/test.news.csv"
+  stopwords_path: "data/stop_words.txt"
+
+# 预处理配置
+preprocessing:
+  use_stopwords: true
+  content_separator: "\n"
+  tokenizer: "jieba"
+
+# 特征工程配置
+features:
+  tfidf:
+    min_df: 5
+    max_features: 10000
+    ngram_range: [1, 2]
+    use_stopwords: true
+    use_idf: true
+    norm: "l2"
+  
+  countvec:
+    min_df: 5
+    max_features: 10000
+    ngram_range: [1, 2]
+    use_stopwords: true
+    binary: false
+
+# 模型配置
+model:
+  random_state: 42
+  test_size: 0.2
+
+# 具体模型参数
+models:
+  naive_bayes:
+    alpha: 1.0
+    fit_prior: true
+  
+  random_forest:
+    n_estimators: [120, 200, 300, 500, 800, 1200]
+    max_depth: [5, 8, 15, 25, 30]
+    random_state: 42
+  
+  svm:
+    kernel: "rbf"
+    C: 1.0
+    gamma: "scale"
+    random_state: 42
+  
+  logistic_regression:
+    C: 1.0
+    max_iter: 100
+    random_state: 42
+
+# 评估配置
+evaluation:
+  metrics: ["accuracy", "precision", "recall", "f1", "auc"]
+  cv_folds: 5
+  plot_roc: true
+  plot_confusion_matrix: true
+  save_results: true
+
+# 日志配置
+logging:
+  log_level: "INFO"
+  log_file: "logs/application.log"
+  log_to_console: true 

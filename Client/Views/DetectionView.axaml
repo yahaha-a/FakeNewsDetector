@@ -1,0 +1,225 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Client.ViewModels"
+             xmlns:material="using:Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
+             x:Class="Client.Views.DetectionView"
+             x:DataType="vm:DetectionViewModel">
+    
+    <Grid RowDefinitions="Auto,*" Margin="5">
+        <Border Grid.Row="0" Classes="Card" Padding="18" Margin="0,0,0,12" BoxShadow="0 2 8 0 #15000000" CornerRadius="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <material:MaterialIcon Kind="Magnify" Width="24" Height="24" Foreground="{DynamicResource SemiBlue}" />
+                        <TextBlock Text="新闻检测" Classes="H4" FontWeight="SemiBold" Foreground="{DynamicResource SemiDark}" />
+                    </StackPanel>
+                    <TextBlock Text="请在下方输入新闻内容或标题进行检测，或选择从文件/URL导入" 
+                            TextWrapping="Wrap" Opacity="0.8" Margin="36,0,0,0" />
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Command="{Binding ImportFromFileCommand}" Classes="Outline">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <material:MaterialIcon Kind="FileUpload" Width="16" Height="16" />
+                            <TextBlock Text="导入文件" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding ClearContentCommand}" Classes="Outline">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <material:MaterialIcon Kind="Eraser" Width="16" Height="16" />
+                            <TextBlock Text="清空内容" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <Grid Grid.Row="1" ColumnDefinitions="1*,1*" Margin="0,5,0,0">
+            <!-- 左侧输入区域 -->
+            <Border Grid.Column="0" Classes="Card" Margin="0,0,6,0" Padding="0" BoxShadow="0 2 8 0 #15000000" CornerRadius="10">
+                <DockPanel>
+                    <!-- 工具栏 -->
+                    <Border DockPanel.Dock="Top" BorderThickness="0,0,0,1" 
+                          BorderBrush="{DynamicResource SemiBorderBrush}" Padding="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Text="新闻内容" FontWeight="Medium" VerticalAlignment="Center" />
+                            
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                                <ComboBox SelectedIndex="0" Width="120" PlaceholderText="输入方式">
+                                    <ComboBoxItem>文本输入</ComboBoxItem>
+                                    <ComboBoxItem>文件导入</ComboBoxItem>
+                                    <ComboBoxItem>URL导入</ComboBoxItem>
+                                </ComboBox>
+                                
+                                <Button Classes="Outline" Padding="8,4">
+                                    <material:MaterialIcon Kind="ContentPaste" Width="18" Height="18" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- 输入区 -->
+                    <Grid Margin="0">
+                        <TextBox AcceptsReturn="True" 
+                                TextWrapping="Wrap" 
+                                Text="{Binding NewsContent}" 
+                                Watermark="请输入新闻标题或正文内容..."
+                                BorderThickness="0"
+                                Padding="16"
+                                FontSize="14"
+                                VerticalAlignment="Stretch" />
+                        
+                        <Button Classes="Primary" 
+                              VerticalAlignment="Bottom" 
+                              HorizontalAlignment="Right"
+                              Margin="0,0,16,16"
+                              Command="{Binding DetectFakeNewsCommand}"
+                              IsEnabled="{Binding CanDetect}"
+                              Padding="15,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <material:MaterialIcon Kind="Search" Width="18" Height="18" />
+                                <TextBlock Text="开始检测" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- 加载中状态 -->
+                        <Border Background="#80FFFFFF" IsVisible="{Binding IsLoading}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="15">
+                                <ProgressBar IsIndeterminate="True" Width="150" />
+                                <TextBlock Text="正在分析内容..." HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </DockPanel>
+            </Border>
+            
+            <!-- 右侧结果区 -->
+            <Border Grid.Column="1" Classes="Card" Margin="6,0,0,0" Padding="0" BoxShadow="0 2 8 0 #15000000" CornerRadius="10"
+                  IsVisible="{Binding HasResult}">
+                <DockPanel>
+                    <!-- 结果标题栏 -->
+                    <Border DockPanel.Dock="Top" Background="{Binding ResultBackgroundColor}" Padding="16" CornerRadius="10,10,0,0">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <material:MaterialIcon Grid.Column="0" Kind="{Binding ResultIcon}" 
+                                                Width="28" Height="28" Foreground="White" />
+                            <StackPanel Grid.Column="1" Margin="15,0,0,0">
+                                <TextBlock Text="{Binding ResultText}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                                <TextBlock Text="{Binding ResultDescription}" Foreground="White" Opacity="0.9" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding Confidence, StringFormat='{}{0:F1}%'}" 
+                                      Foreground="White" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    
+                    <!-- 结果详情 -->
+                    <ScrollViewer>
+                        <StackPanel Margin="18">
+                            <!-- 可信度 -->
+                            <Border Classes="Card" Padding="15" Margin="0,0,0,16" CornerRadius="8" Background="#F8F9FA">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <material:MaterialIcon DockPanel.Dock="Left" Kind="ChartBar" Width="20" Height="20" Foreground="{DynamicResource SemiBlue}" />
+                                        <TextBlock Text="可信度分析" FontWeight="SemiBold" Margin="8,0,0,0" />
+                                    </DockPanel>
+                                    
+                                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                                        <ProgressBar Grid.Row="0" Grid.Column="0" Value="{Binding Confidence}" 
+                                                  Foreground="{Binding ConfidenceColor}"
+                                                  Maximum="100" Height="16" />
+                                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                                Text="{Binding Confidence, StringFormat='{}{0:F1}%'}" 
+                                                Margin="10,0,0,0" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Text="{Binding ConfidenceDescription}" TextWrapping="Wrap" 
+                                                Opacity="0.85" Margin="0,8,0,0" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- 关键特征 -->
+                            <Border Classes="Card" Padding="15" Margin="0,0,0,16" CornerRadius="8" Background="#F8F9FA">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <material:MaterialIcon DockPanel.Dock="Left" Kind="FormatListBulleted" Width="20" Height="20" Foreground="{DynamicResource SemiBlue}" />
+                                        <TextBlock Text="关键特征" FontWeight="SemiBold" Margin="8,0,0,0" />
+                                    </DockPanel>
+                                    
+                                    <ItemsControl ItemsSource="{Binding KeyFeatures}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="8,6" Margin="0,3" CornerRadius="4" 
+                                                      Background="{DynamicResource SemiBackgroundLighterBrush}">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                                        <material:MaterialIcon Grid.Column="0" Kind="ChevronRight" Width="16" Height="16" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding Description}" Margin="8,0,0,0" TextWrapping="Wrap" />
+                                                        <TextBlock Grid.Column="2" Text="{Binding Weight, StringFormat='{}{0:P0}'}" 
+                                                                Foreground="{Binding WeightColor}" FontWeight="SemiBold" Margin="8,0,0,0" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- 详细分析 -->
+                            <Border Classes="Card" Padding="15" Margin="0,0,0,16" CornerRadius="8" Background="#F8F9FA">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <material:MaterialIcon DockPanel.Dock="Left" Kind="TextBox" Width="20" Height="20" Foreground="{DynamicResource SemiBlue}" />
+                                        <TextBlock Text="详细分析" FontWeight="SemiBold" Margin="8,0,0,0" />
+                                    </DockPanel>
+                                    
+                                    <TextBlock Text="{Binding DetailedAnalysis}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- 操作按钮 -->
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0" 
+                                      HorizontalAlignment="Right">
+                                <Button Classes="Outline">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <material:MaterialIcon Kind="ContentSave" Width="16" Height="16" />
+                                        <TextBlock Text="保存结果" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="Primary">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <material:MaterialIcon Kind="FileExport" Width="16" Height="16" />
+                                        <TextBlock Text="导出报告" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+            
+            <!-- 右侧空状态提示 -->
+            <Border Grid.Column="1" Classes="Card" Margin="6,0,0,0" Padding="20" BoxShadow="0 2 8 0 #15000000" CornerRadius="10"
+                  IsVisible="{Binding !HasResult}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                    <material:MaterialIcon Kind="FileSearch" Width="80" Height="80" 
+                                        Foreground="{DynamicResource SemiGray}" HorizontalAlignment="Center" />
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="检测结果将在这里显示" HorizontalAlignment="Center" 
+                                FontSize="18" FontWeight="Medium" Foreground="{DynamicResource SemiDark}" />
+                        <TextBlock Text="在左侧输入新闻内容并点击'开始检测'按钮" 
+                                HorizontalAlignment="Center" TextWrapping="Wrap" 
+                                TextAlignment="Center" Opacity="0.7" />
+                    </StackPanel>
+                    
+                    <Button Classes="Primary" Command="{Binding ImportFromFileCommand}" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <material:MaterialIcon Kind="FileMultiple" Width="16" Height="16" />
+                            <TextBlock Text="导入示例新闻" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl> 

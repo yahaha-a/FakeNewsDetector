@@ -1,0 +1,68 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 主色调 -->
+    <Color x:Key="PrimaryColor">#1861DE</Color>
+    <Color x:Key="PrimaryLightColor">#3373E1</Color>
+    <Color x:Key="PrimaryDarkColor">#1555C4</Color>
+    <Color x:Key="PrimaryDarkerColor">#0F48AF</Color>
+    <Color x:Key="PrimaryBgColor">#EFF6FF</Color>
+    <Color x:Key="PrimaryBgHoverColor">#DFEAFF</Color>
+    
+    <!-- 成功色 -->
+    <Color x:Key="SuccessColor">#059669</Color>
+    <Color x:Key="SuccessLightColor">#10B981</Color>
+    <Color x:Key="SuccessDarkColor">#047857</Color>
+    <Color x:Key="SuccessBgColor">#ECFDF5</Color>
+    
+    <!-- 警告色 -->
+    <Color x:Key="WarningColor">#D97706</Color>
+    <Color x:Key="WarningLightColor">#F59E0B</Color>
+    <Color x:Key="WarningDarkColor">#B45309</Color>
+    <Color x:Key="WarningBgColor">#FFF7ED</Color>
+    
+    <!-- 危险色 -->
+    <Color x:Key="DangerColor">#DC2626</Color>
+    <Color x:Key="DangerLightColor">#EF4444</Color>
+    <Color x:Key="DangerDarkColor">#B91C1C</Color>
+    <Color x:Key="DangerBgColor">#FEF2F2</Color>
+    
+    <!-- 中性色 -->
+    <Color x:Key="TextPrimaryColor">#222222</Color>
+    <Color x:Key="TextSecondaryColor">#444444</Color>
+    <Color x:Key="TextTertiaryColor">#666666</Color>
+    <Color x:Key="BorderColor">#DDDDDD</Color>
+    <Color x:Key="BackgroundColor">#F6F8FA</Color>
+    <Color x:Key="CardColor">#FFFFFF</Color>
+    <Color x:Key="DisabledColor">#A0A0A0</Color>
+    
+    <!-- 刷子资源 -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}"/>
+    <SolidColorBrush x:Key="PrimaryDarkerBrush" Color="{StaticResource PrimaryDarkerColor}"/>
+    <SolidColorBrush x:Key="PrimaryBgBrush" Color="{StaticResource PrimaryBgColor}"/>
+    <SolidColorBrush x:Key="PrimaryBgHoverBrush" Color="{StaticResource PrimaryBgHoverColor}"/>
+    
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="{StaticResource SuccessLightColor}"/>
+    <SolidColorBrush x:Key="SuccessDarkBrush" Color="{StaticResource SuccessDarkColor}"/>
+    <SolidColorBrush x:Key="SuccessBgBrush" Color="{StaticResource SuccessBgColor}"/>
+    
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="WarningLightBrush" Color="{StaticResource WarningLightColor}"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource WarningDarkColor}"/>
+    <SolidColorBrush x:Key="WarningBgBrush" Color="{StaticResource WarningBgColor}"/>
+    
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
+    <SolidColorBrush x:Key="DangerLightBrush" Color="{StaticResource DangerLightColor}"/>
+    <SolidColorBrush x:Key="DangerDarkBrush" Color="{StaticResource DangerDarkColor}"/>
+    <SolidColorBrush x:Key="DangerBgBrush" Color="{StaticResource DangerBgColor}"/>
+    
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}"/>
+    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}"/>
+</ResourceDictionary> 
