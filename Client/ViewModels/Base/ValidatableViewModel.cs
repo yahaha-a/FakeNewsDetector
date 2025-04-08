@@ -1,4 +1,5 @@
 using Client.Helpers.Validation;
+using Client.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -117,7 +118,7 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"验证属性时出错: {ex.Message}");
+                SerilogLoggerService.Instance.Error(ex, "ValidatableViewModel: 验证属性时出错 - 属性: {PropertyName}, 类型: {ViewModelType}", propertyName, GetType().Name);
             }
         }
 

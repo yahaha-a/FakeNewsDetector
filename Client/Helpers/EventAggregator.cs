@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Client.Services;
 
 namespace Client.Helpers
 {
@@ -137,8 +138,8 @@ namespace Client.Helpers
                 }
                 catch (Exception ex)
                 {
-                    // 这里可以记录错误，但不应该让一个处理器的异常影响其他处理器
-                    System.Diagnostics.Debug.WriteLine($"事件处理异常: {ex.Message}");
+                    // 使用日志服务记录异常
+                    SerilogLoggerService.Instance.Error(ex, "EventAggregator: 事件处理异常 - 事件类型: {EventType}", typeof(TEvent).Name);
                 }
             }
         }

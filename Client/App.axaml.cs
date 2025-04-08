@@ -12,6 +12,7 @@ using Client.DependencyInjection;
 using Client.Helpers;
 using Client.Helpers.Events;
 using System.IO;
+using Client.Services;
 
 namespace Client;
 
@@ -459,44 +460,19 @@ public partial class App : Application
     // 记录信息到文件
     private void LogInfo(string message)
     {
-        try
-        {
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir);
-            File.AppendAllText(Path.Combine(logDir, "app-lifecycle.log"), $"{DateTime.Now}: {message}\n");
-        }
-        catch
-        {
-            // 无法记录到文件时，不做任何处理
-        }
+        SerilogLoggerService.Instance.Information(message);
     }
     
     // 记录错误到文件
     private void LogError(string message, Exception? ex = null)
     {
-        try
+        if (ex != null)
         {
-            var errorMessage = $"{DateTime.Now}: {message}\n";
-            
-            if (ex != null)
-            {
-                errorMessage += $"错误: {ex.Message}\n" +
-                               $"堆栈: {ex.StackTrace}\n";
-                
-                if (ex.InnerException != null)
-                {
-                    errorMessage += $"内部错误: {ex.InnerException.Message}\n" +
-                                  $"内部堆栈: {ex.InnerException.StackTrace}\n";
-                }
-            }
-            
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir);
-            File.AppendAllText(Path.Combine(logDir, "app-errors.log"), errorMessage);
+            SerilogLoggerService.Instance.Error(ex, message);
         }
-        catch
+        else
         {
-            // 无法记录到文件时，不做任何处理
+            SerilogLoggerService.Instance.Error(message);
         }
     }
 

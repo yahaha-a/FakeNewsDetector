@@ -14,6 +14,16 @@ namespace Client.Services
     {
         private readonly LoggingLevelSwitch _levelSwitch;
         private readonly ILogger _logger;
+        
+        /// <summary>
+        /// 全局静态实例，用于在DI容器初始化前使用
+        /// </summary>
+        private static SerilogLoggerService? _instance;
+        
+        /// <summary>
+        /// 获取全局静态实例，如果不存在则创建
+        /// </summary>
+        public static SerilogLoggerService Instance => _instance ??= new SerilogLoggerService();
 
         /// <summary>
         /// 构造函数

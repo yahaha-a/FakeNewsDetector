@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Client.Services;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -92,7 +93,7 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"加载异常: {ex.Message}");
+                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 加载异常 ({ViewModel})", GetType().Name);
                 StatusMessage = $"加载出错: {ex.Message}";
             }
             finally
@@ -129,7 +130,7 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"执行异常: {ex.Message}");
+                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 执行异常 ({ViewModel})", GetType().Name);
                 StatusMessage = $"操作出错: {ex.Message}";
             }
             finally
@@ -159,7 +160,7 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"执行异常: {ex.Message}");
+                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 执行异常 ({ViewModel})", GetType().Name);
                 StatusMessage = $"操作出错: {ex.Message}";
                 return default;
             }

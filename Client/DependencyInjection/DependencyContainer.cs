@@ -47,7 +47,7 @@ namespace Client.DependencyInjection
                     var services = new ServiceCollection();
                     
                     // 注册日志服务 - 单例模式（优先注册，便于其他服务使用）
-                    services.AddSingleton<ILoggerService>(sp => new SerilogLoggerService());
+                    services.AddSingleton<ILoggerService>(sp => SerilogLoggerService.Instance);
                     
                     // 注册设置服务 - 单例模式
                     services.AddSingleton<ISettingsService, SettingsService>();
@@ -157,18 +157,7 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogInfo(string message)
         {
-            try
-            {
-                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                Directory.CreateDirectory(logDir);
-                File.AppendAllText(
-                    Path.Combine(logDir, "dependency-container.log"), 
-                    $"{DateTime.Now}: {message}\n");
-            }
-            catch
-            {
-                // 无法记录日志时不做任何处理
-            }
+            SerilogLoggerService.Instance.Information("DependencyContainer: {Message}", message);
         }
         
         /// <summary>
@@ -176,29 +165,7 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogError(string message, Exception ex)
         {
-            try
-            {
-                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                Directory.CreateDirectory(logDir);
-                
-                string errorMessage = $"{DateTime.Now}: {message}\n"
-                    + $"异常: {ex.Message}\n"
-                    + $"堆栈: {ex.StackTrace}\n";
-                
-                if (ex.InnerException != null)
-                {
-                    errorMessage += $"内部异常: {ex.InnerException.Message}\n"
-                        + $"内部堆栈: {ex.InnerException.StackTrace}\n";
-                }
-                
-                File.AppendAllText(
-                    Path.Combine(logDir, "dependency-container-errors.log"), 
-                    errorMessage);
-            }
-            catch
-            {
-                // 无法记录日志时不做任何处理
-            }
+            SerilogLoggerService.Instance.Error(ex, "DependencyContainer: {Message}", message);
         }
     }
 } 

@@ -10,6 +10,7 @@ using Avalonia.Win32;
 
 using Client.DependencyInjection;
 using Client.Helpers;
+using Client.Services;
 using Client.Views;
 
 namespace Client;
@@ -136,40 +137,19 @@ class Program
     // 记录信息到文件
     private static void LogInfo(string message)
     {
-        try
-        {
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir);
-            File.AppendAllText(Path.Combine(logDir, "startup.log"), $"{DateTime.Now}: {message}\n");
-        }
-        catch
-        {
-            // 无法记录到文件时，不做任何处理
-        }
+        SerilogLoggerService.Instance.Information("Program: {Message}", message);
     }
     
     // 记录错误到文件
     private static void LogError(string message, Exception? ex)
     {
-        try
+        if (ex != null)
         {
-            var errorMessage = $"{DateTime.Now}: {message}\n" +
-                               $"错误: {ex?.Message ?? "未知错误"}\n" +
-                               $"堆栈: {ex?.StackTrace ?? "无堆栈信息"}\n";
-            
-            if (ex?.InnerException != null)
-            {
-                errorMessage += $"内部错误: {ex.InnerException.Message}\n" +
-                                $"内部堆栈: {ex.InnerException.StackTrace}\n";
-            }
-            
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir);
-            File.AppendAllText(Path.Combine(logDir, "error.log"), errorMessage);
+            SerilogLoggerService.Instance.Error(ex, "Program: {Message}", message);
         }
-        catch
+        else
         {
-            // 无法记录到文件时，不做任何处理
+            SerilogLoggerService.Instance.Error("Program: {Message}", message);
         }
     }
 }

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Client.Helpers.Events;
+using Client.Services;
 using Client.ViewModels.Controls;
 using System;
 using Client.Constants;
@@ -56,18 +57,18 @@ namespace Client.Views.Controls
         private static void ShowExceptionDetails(Exception exception)
         {
             // 在实际应用中，这里可以显示一个模态对话框
-            // 目前仅输出到调试控制台
-            System.Diagnostics.Debug.WriteLine("异常详情:");
-            System.Diagnostics.Debug.WriteLine($"类型: {exception.GetType().FullName}");
-            System.Diagnostics.Debug.WriteLine($"消息: {exception.Message}");
-            System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {exception.StackTrace}");
+            // 使用Serilog记录异常信息
+            SerilogLoggerService.Instance.Debug("ErrorNotification: 异常详情:");
+            SerilogLoggerService.Instance.Debug("ErrorNotification: 类型: {ExceptionType}", exception.GetType().FullName);
+            SerilogLoggerService.Instance.Debug("ErrorNotification: 消息: {ExceptionMessage}", exception.Message);
+            SerilogLoggerService.Instance.Debug("ErrorNotification: 堆栈跟踪: {StackTrace}", exception.StackTrace);
             
             if (exception.InnerException != null)
             {
-                System.Diagnostics.Debug.WriteLine("内部异常:");
-                System.Diagnostics.Debug.WriteLine($"类型: {exception.InnerException.GetType().FullName}");
-                System.Diagnostics.Debug.WriteLine($"消息: {exception.InnerException.Message}");
-                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {exception.InnerException.StackTrace}");
+                SerilogLoggerService.Instance.Debug("ErrorNotification: 内部异常:");
+                SerilogLoggerService.Instance.Debug("ErrorNotification: 类型: {InnerExceptionType}", exception.InnerException.GetType().FullName);
+                SerilogLoggerService.Instance.Debug("ErrorNotification: 消息: {InnerExceptionMessage}", exception.InnerException.Message);
+                SerilogLoggerService.Instance.Debug("ErrorNotification: 堆栈跟踪: {InnerStackTrace}", exception.InnerException.StackTrace);
             }
         }
         

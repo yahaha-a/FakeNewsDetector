@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Client.DependencyInjection;
+using Client.Services;
 using Client.Services.Interfaces;
 using Client.ViewModels;
 using System;
@@ -177,15 +178,6 @@ public partial class MainWindow : Window
     /// </summary>
     private void LogDebugInfo(string message)
     {
-        try
-        {
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir);
-            File.AppendAllText(Path.Combine(logDir, "ui-debug.log"), $"{DateTime.Now}: {message}\n");
-        }
-        catch
-        {
-            // 无法记录到文件时，不做任何处理
-        }
+        SerilogLoggerService.Instance.Debug("MainWindow: {Message}", message);
     }
 }
