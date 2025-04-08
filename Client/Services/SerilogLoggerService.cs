@@ -47,7 +47,7 @@ namespace Client.Services
         /// <summary>
         /// 创建日志服务实例（内部使用）
         /// </summary>
-        private static SerilogLoggerService CreateLoggerService(string logFilePath = "logs/app.log", string minimumLevel = "Information")
+        private static SerilogLoggerService CreateLoggerService(string logFilePath = "bin/Debug/net8.0/logs/app.log", string minimumLevel = "Information")
         {
             return new SerilogLoggerService(logFilePath, minimumLevel);
         }
@@ -58,7 +58,7 @@ namespace Client.Services
         /// <remarks>
         /// 主要用于依赖注入容器和程序初始化
         /// </remarks>
-        public static SerilogLoggerService CreateInstance(string logFilePath = "logs/app.log", string minimumLevel = "Information")
+        public static SerilogLoggerService CreateInstance(string logFilePath = "bin/Debug/net8.0/logs/app.log", string minimumLevel = "Information")
         {
             if (_instance == null)
             {
@@ -95,7 +95,9 @@ namespace Client.Services
                     logFilePath,
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                    retainedFileCountLimit: 7)
+                    retainedFileCountLimit: 7,
+                    rollOnFileSizeLimit: true,
+                    fileSizeLimitBytes: 10 * 1024 * 1024) // 10MB
                 .Enrich.FromLogContext()
                 .CreateLogger();
 

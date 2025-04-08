@@ -34,7 +34,7 @@ class Program
         try
         {
             // 初始化日志服务
-            var logger = SerilogLoggerService.CreateInstance();
+            var logger = SerilogLoggerService.CreateInstance("bin/Debug/net8.0/logs/app.log");
             
             // 记录应用启动信息
             logger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Start, "应用程序启动");
