@@ -11,254 +11,189 @@ using Serilog;
 
 namespace Client.Services;
 
+/// <summary>
+/// 配置服务实现
+/// </summary>
 public class ConfigService : IConfigService
 {
-    private readonly string _configPath;
-    private AppConfig _currentConfig;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly string _configFilePath;
     private readonly IValidator<AppConfig> _validator;
+    private AppConfig _currentConfig;
+    private bool _isInitialized;
 
-    public ConfigService()
+    /// <summary>
+    /// 配置变更事件
+    /// </summary>
+    public event EventHandler<ConfigChangedEventArgs>? ConfigChanged;
+
+    /// <summary>
+    /// 初始化配置服务
+    /// </summary>
+    public ConfigService(string configFilePath, IValidator<AppConfig> validator)
     {
-        var appDataPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "FakeNewsDetector"
-        );
-        Directory.CreateDirectory(appDataPath);
-        _configPath = Path.Combine(appDataPath, "config.json");
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
+        _configFilePath = configFilePath;
+        _validator = validator;
         _currentConfig = new AppConfig();
-        _validator = new AppConfigValidator();
+        _isInitialized = false;
     }
 
+    /// <summary>
+    /// 获取当前配置
+    /// </summary>
     public AppConfig GetConfig()
     {
+        if (!_isInitialized)
+        {
+            throw new InvalidOperationException("配置服务未初始化，请先调用LoadConfigAsync方法");
+        }
         return _currentConfig;
     }
 
+    /// <summary>
+    /// 更新配置
+    /// </summary>
     public async Task UpdateConfigAsync(AppConfig config)
     {
-        // 验证配置
-        var validationResult = await ValidateConfigAsync(config);
-        if (!validationResult.IsValid)
+        if (config == null)
         {
-            var exception = new ConfigValidationException(validationResult.Errors);
-            Log.Error(exception, "配置验证失败");
-            
-            // 尝试修复配置
-            config = await FixConfigAsync(config);
-            Log.Information("已尝试修复配置");
+            throw new ArgumentNullException(nameof(config));
         }
 
+        var oldConfig = _currentConfig;
         _currentConfig = config;
+
+        // 触发配置变更事件
+        OnConfigChanged(oldConfig, config);
+
         await SaveConfigAsync();
     }
 
+    /// <summary>
+    /// 保存配置到文件
+    /// </summary>
     public async Task SaveConfigAsync()
     {
-        try
+        var options = new JsonSerializerOptions
         {
-            // 保存前再次验证
-            var validationResult = await ValidateCurrentConfigAsync();
-            if (!validationResult.IsValid)
-            {
-                Log.Warning("保存时配置验证失败，尝试修复配置");
-                _currentConfig = await FixConfigAsync(_currentConfig);
-            }
-            
-            var json = JsonSerializer.Serialize(_currentConfig, _jsonOptions);
-            await File.WriteAllTextAsync(_configPath, json);
-            Log.Information("配置已保存");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "保存配置失败");
-            throw;
-        }
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var json = JsonSerializer.Serialize(_currentConfig, options);
+        await File.WriteAllTextAsync(_configFilePath, json);
     }
 
+    /// <summary>
+    /// 从文件加载配置
+    /// </summary>
     public async Task LoadConfigAsync()
     {
-        try
+        if (!File.Exists(_configFilePath))
         {
-            if (File.Exists(_configPath))
-            {
-                var json = await File.ReadAllTextAsync(_configPath);
-                _currentConfig = JsonSerializer.Deserialize<AppConfig>(json, _jsonOptions) ?? new AppConfig();
-                
-                // 验证加载的配置
-                var validationResult = await ValidateCurrentConfigAsync();
-                if (!validationResult.IsValid)
-                {
-                    Log.Warning("加载的配置验证失败，尝试修复配置");
-                    _currentConfig = await FixConfigAsync(_currentConfig);
-                }
-                
-                Log.Information("配置已加载");
-            }
-            else
-            {
-                _currentConfig = new AppConfig();
-                await SaveConfigAsync();
-                Log.Information("创建新配置文件");
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "加载配置失败");
             _currentConfig = new AppConfig();
+            await SaveConfigAsync();
+        }
+        else
+        {
+            var json = await File.ReadAllTextAsync(_configFilePath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var oldConfig = _currentConfig;
+            _currentConfig = JsonSerializer.Deserialize<AppConfig>(json, options) ?? new AppConfig();
+
+            // 触发配置变更事件
+            OnConfigChanged(oldConfig, _currentConfig);
+        }
+
+        _isInitialized = true;
+    }
+
+    /// <summary>
+    /// 重置配置为默认值
+    /// </summary>
+    public async Task ResetConfigAsync()
+    {
+        var oldConfig = _currentConfig;
+        _currentConfig = new AppConfig();
+
+        // 触发配置变更事件
+        OnConfigChanged(oldConfig, _currentConfig);
+
+        await SaveConfigAsync();
+    }
+
+    /// <summary>
+    /// 验证配置
+    /// </summary>
+    public async Task<ValidationResult> ValidateConfigAsync(AppConfig config)
+    {
+        return await _validator.ValidateAsync(config);
+    }
+
+    /// <summary>
+    /// 验证当前配置
+    /// </summary>
+    public async Task<ValidationResult> ValidateCurrentConfigAsync()
+    {
+        return await ValidateConfigAsync(_currentConfig);
+    }
+
+    /// <summary>
+    /// 修复配置
+    /// </summary>
+    public async Task<AppConfig> FixConfigAsync(AppConfig config)
+    {
+        var result = await ValidateConfigAsync(config);
+        if (result.IsValid)
+        {
+            return config;
+        }
+
+        // 这里可以根据实际需求实现配置修复逻辑
+        // 目前只是简单地返回一个新的默认配置
+        return new AppConfig();
+    }
+
+    /// <summary>
+    /// 触发配置变更事件
+    /// </summary>
+    private void OnConfigChanged(AppConfig oldConfig, AppConfig newConfig)
+    {
+        if (oldConfig == null || newConfig == null)
+        {
+            return;
+        }
+
+        // 比较并触发各个属性的变更事件
+        if (oldConfig.WindowState != newConfig.WindowState)
+        {
+            OnPropertyChanged(nameof(AppConfig.WindowState), oldConfig.WindowState, newConfig.WindowState);
+        }
+
+        if (oldConfig.ApiSettings != newConfig.ApiSettings)
+        {
+            OnPropertyChanged(nameof(AppConfig.ApiSettings), oldConfig.ApiSettings, newConfig.ApiSettings);
+        }
+
+        if (oldConfig.UiSettings != newConfig.UiSettings)
+        {
+            OnPropertyChanged(nameof(AppConfig.UiSettings), oldConfig.UiSettings, newConfig.UiSettings);
+        }
+
+        if (oldConfig.RecentFiles != newConfig.RecentFiles)
+        {
+            OnPropertyChanged(nameof(AppConfig.RecentFiles), oldConfig.RecentFiles, newConfig.RecentFiles);
         }
     }
 
-    public async Task ResetConfigAsync()
+    /// <summary>
+    /// 触发属性变更事件
+    /// </summary>
+    private void OnPropertyChanged(string propertyName, object? oldValue, object? newValue)
     {
-        _currentConfig = new AppConfig();
-        await SaveConfigAsync();
-        Log.Information("配置已重置为默认值");
-    }
-    
-    public Task<ValidationResult> ValidateConfigAsync(AppConfig config)
-    {
-        return Task.FromResult(_validator.Validate(config));
-    }
-    
-    public Task<ValidationResult> ValidateCurrentConfigAsync()
-    {
-        return ValidateConfigAsync(_currentConfig);
-    }
-    
-    public Task<AppConfig> FixConfigAsync(AppConfig config)
-    {
-        try
-        {
-            // 创建一个有效的默认配置
-            var defaultConfig = new AppConfig();
-            
-            // 有效的主题列表
-            var validThemes = new[] { "Light", "Dark", "System" };
-            
-            // 有效的语言列表
-            var validLanguages = new[] { "zh-CN", "en-US" };
-            
-            // 修复主题
-            if (string.IsNullOrEmpty(config.Theme) || 
-                !validThemes.Contains(config.Theme))
-            {
-                config.Theme = defaultConfig.Theme;
-                Log.Information("已修复无效的主题设置");
-            }
-            
-            // 修复语言
-            if (string.IsNullOrEmpty(config.Language) || 
-                !validLanguages.Contains(config.Language))
-            {
-                config.Language = defaultConfig.Language;
-                Log.Information("已修复无效的语言设置");
-            }
-            
-            // 修复窗口状态
-            if (config.WindowState == null)
-            {
-                config.WindowState = defaultConfig.WindowState;
-                Log.Information("已修复窗口状态设置");
-            }
-            else
-            {
-                // 修复窗口尺寸
-                if (config.WindowState.Width < 800 || config.WindowState.Width > 4000)
-                {
-                    config.WindowState.Width = defaultConfig.WindowState.Width;
-                    Log.Information("已修复窗口宽度设置");
-                }
-                
-                if (config.WindowState.Height < 600 || config.WindowState.Height > 3000)
-                {
-                    config.WindowState.Height = defaultConfig.WindowState.Height;
-                    Log.Information("已修复窗口高度设置");
-                }
-            }
-            
-            // 修复最近文件列表
-            if (config.RecentFiles == null)
-            {
-                config.RecentFiles = defaultConfig.RecentFiles;
-                Log.Information("已修复最近文件列表设置");
-            }
-            else
-            {
-                // 移除空路径
-                config.RecentFiles.RemoveAll(string.IsNullOrWhiteSpace);
-                Log.Information("已移除空的最近文件路径");
-            }
-            
-            // 修复API设置
-            if (config.ApiSettings == null)
-            {
-                config.ApiSettings = defaultConfig.ApiSettings;
-                Log.Information("已修复API设置");
-            }
-            else
-            {
-                // 修复BaseUrl
-                if (string.IsNullOrEmpty(config.ApiSettings.BaseUrl) || 
-                    (!config.ApiSettings.BaseUrl.StartsWith("http://") && 
-                     !config.ApiSettings.BaseUrl.StartsWith("https://")))
-                {
-                    config.ApiSettings.BaseUrl = defaultConfig.ApiSettings.BaseUrl;
-                    Log.Information("已修复API基础URL设置");
-                }
-                
-                // 修复超时设置
-                if (config.ApiSettings.Timeout < 5 || config.ApiSettings.Timeout > 120)
-                {
-                    config.ApiSettings.Timeout = defaultConfig.ApiSettings.Timeout;
-                    Log.Information("已修复API超时设置");
-                }
-                
-                // 修复重试设置
-                if (config.ApiSettings.RetryCount < 0 || config.ApiSettings.RetryCount > 10)
-                {
-                    config.ApiSettings.RetryCount = defaultConfig.ApiSettings.RetryCount;
-                    Log.Information("已修复API重试次数设置");
-                }
-            }
-            
-            // 修复UI设置
-            if (config.UiSettings == null)
-            {
-                config.UiSettings = defaultConfig.UiSettings;
-                Log.Information("已修复UI设置");
-            }
-            else
-            {
-                // 修复字体大小
-                if (config.UiSettings.FontSize < 8 || config.UiSettings.FontSize > 24)
-                {
-                    config.UiSettings.FontSize = defaultConfig.UiSettings.FontSize;
-                    Log.Information("已修复字体大小设置");
-                }
-            }
-            
-            // 验证修复后的配置
-            var validationResult = _validator.Validate(config);
-            if (!validationResult.IsValid)
-            {
-                Log.Warning("修复后的配置仍然无效，将使用默认配置");
-                return Task.FromResult(defaultConfig);
-            }
-            
-            return Task.FromResult(config);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "修复配置失败，将使用默认配置");
-            return Task.FromResult(new AppConfig());
-        }
+        ConfigChanged?.Invoke(this, new ConfigChangedEventArgs(propertyName, oldValue, newValue));
     }
 } 

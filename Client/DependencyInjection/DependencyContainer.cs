@@ -5,6 +5,9 @@ using Client.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using Client.Models;
+using Client.Models.Validation;
+using FluentValidation;
 
 namespace Client.DependencyInjection
 {
@@ -57,8 +60,20 @@ namespace Client.DependencyInjection
                         services.AddSingleton<ILoggerService>(sp => SerilogLoggerService.CreateInstance());
                     }
                     
-                    // 注册配置服务
-                    services.AddSingleton<IConfigService, ConfigService>();
+                    // 注册AppConfig验证器
+                    services.AddSingleton<IValidator<AppConfig>, AppConfigValidator>();
+                    
+                    // 注册配置服务 - 单例模式
+                    services.AddSingleton<IConfigService>(sp => {
+                        var validator = sp.GetRequiredService<IValidator<AppConfig>>();
+                        var appDataPath = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                            "FakeNewsDetector"
+                        );
+                        Directory.CreateDirectory(appDataPath);
+                        var configFilePath = Path.Combine(appDataPath, "config.json");
+                        return new ConfigService(configFilePath, validator);
+                    });
                     
                     // 注册设置服务 - 单例模式
                     services.AddSingleton<ISettingsService, SettingsService>();
