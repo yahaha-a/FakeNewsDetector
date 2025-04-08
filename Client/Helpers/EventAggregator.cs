@@ -139,7 +139,11 @@ namespace Client.Helpers
                 catch (Exception ex)
                 {
                     // 使用日志服务记录异常
-                    SerilogLoggerService.Instance.Error(ex, "EventAggregator: 事件处理异常 - 事件类型: {EventType}", typeof(TEvent).Name);
+                    SerilogLoggerService.Instance.LogComponentError(
+                        ex,
+                        LogContext.Components.EventAggregator,
+                        LogContext.Actions.Process,
+                        $"事件处理异常 - 事件类型: {typeof(TEvent).Name}");
                 }
             }
         }

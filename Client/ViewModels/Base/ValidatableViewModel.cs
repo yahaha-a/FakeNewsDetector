@@ -1,3 +1,4 @@
+using Client.Helpers;
 using Client.Helpers.Validation;
 using Client.Services;
 using System;
@@ -118,7 +119,11 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                SerilogLoggerService.Instance.Error(ex, "ValidatableViewModel: 验证属性时出错 - 属性: {PropertyName}, 类型: {ViewModelType}", propertyName, GetType().Name);
+                SerilogLoggerService.Instance.LogComponentError(
+                    ex,
+                    LogContext.Components.Validation,
+                    LogContext.Actions.Validate,
+                    $"属性: {propertyName}, 类型: {GetType().Name}");
             }
         }
 

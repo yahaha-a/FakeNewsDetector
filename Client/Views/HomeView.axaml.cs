@@ -1,8 +1,8 @@
 using Avalonia.Controls;
+using Client.Helpers;
 using Client.Services;
 using Client.ViewModels;
 using System;
-using System.Diagnostics;
 
 namespace Client.Views;
 
@@ -12,17 +12,28 @@ public partial class HomeView : UserControl
     {
         try
         {
-            SerilogLoggerService.Instance.Debug("HomeView: 正在初始化HomeView...");
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.HomeView,
+                LogContext.Actions.Initialize,
+                "正在初始化HomeView");
+                
             InitializeComponent();
             
             this.DataContextChanged += HomeView_DataContextChanged;
             this.Loaded += HomeView_Loaded;
             
-            SerilogLoggerService.Instance.Debug("HomeView: 初始化完成");
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.HomeView,
+                LogContext.Actions.Initialize,
+                "初始化完成");
         }
         catch (Exception ex)
         {
-            SerilogLoggerService.Instance.Error(ex, "HomeView: 初始化错误");
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.HomeView,
+                LogContext.Actions.Initialize,
+                "初始化错误");
         }
     }
     
@@ -30,23 +41,40 @@ public partial class HomeView : UserControl
     {
         try
         {
-            SerilogLoggerService.Instance.Debug("HomeView: DataContext已更改");
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.HomeView,
+                LogContext.Actions.Process,
+                "DataContext已更改");
+                
             if (DataContext is HomeViewModel viewModel)
             {
-                SerilogLoggerService.Instance.Debug("HomeView: 新的DataContext是HomeViewModel: TotalDetections={TotalDetections}", viewModel.TotalDetections);
+                SerilogLoggerService.Instance.LogComponentDebug(
+                    LogContext.Components.HomeView,
+                    LogContext.Actions.Process,
+                    $"新的DataContext是HomeViewModel: TotalDetections={viewModel.TotalDetections}");
             }
             else if (DataContext == null)
             {
-                SerilogLoggerService.Instance.Warning("HomeView: 警告: DataContext为null");
+                SerilogLoggerService.Instance.LogComponentWarning(
+                    LogContext.Components.HomeView,
+                    LogContext.Actions.Process,
+                    "DataContext为null");
             }
             else
             {
-                SerilogLoggerService.Instance.Warning("HomeView: 警告: DataContext类型不是HomeViewModel，而是 {ActualType}", DataContext.GetType().Name);
+                SerilogLoggerService.Instance.LogComponentWarning(
+                    LogContext.Components.HomeView,
+                    LogContext.Actions.Process,
+                    $"DataContext类型不是HomeViewModel，而是 {DataContext.GetType().Name}");
             }
         }
         catch (Exception ex)
         {
-            SerilogLoggerService.Instance.Error(ex, "HomeView: DataContextChanged事件处理错误");
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.HomeView,
+                LogContext.Actions.Process,
+                "DataContextChanged事件处理错误");
         }
     }
     
@@ -54,19 +82,33 @@ public partial class HomeView : UserControl
     {
         try
         {
-            SerilogLoggerService.Instance.Debug("HomeView: 已加载");
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.HomeView,
+                LogContext.Actions.Load,
+                "视图已加载");
+                
             if (DataContext is HomeViewModel viewModel)
             {
-                SerilogLoggerService.Instance.Debug("HomeView: 加载完成，DataContext是HomeViewModel: TotalDetections={TotalDetections}", viewModel.TotalDetections);
+                SerilogLoggerService.Instance.LogComponentDebug(
+                    LogContext.Components.HomeView,
+                    LogContext.Actions.Load,
+                    $"加载完成，DataContext是HomeViewModel: TotalDetections={viewModel.TotalDetections}");
             }
             else
             {
-                SerilogLoggerService.Instance.Warning("HomeView: 警告: 加载完成，但DataContext不是HomeViewModel");
+                SerilogLoggerService.Instance.LogComponentWarning(
+                    LogContext.Components.HomeView,
+                    LogContext.Actions.Load,
+                    "加载完成，但DataContext不是HomeViewModel");
             }
         }
         catch (Exception ex)
         {
-            SerilogLoggerService.Instance.Error(ex, "HomeView: Loaded事件处理错误");
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.HomeView,
+                LogContext.Actions.Load,
+                "Loaded事件处理错误");
         }
     }
 } 

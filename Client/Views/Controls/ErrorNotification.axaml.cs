@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Client.Helpers;
 using Client.Helpers.Events;
 using Client.Services;
 using Client.ViewModels.Controls;
@@ -58,17 +59,32 @@ namespace Client.Views.Controls
         {
             // 在实际应用中，这里可以显示一个模态对话框
             // 使用Serilog记录异常信息
-            SerilogLoggerService.Instance.Debug("ErrorNotification: 异常详情:");
-            SerilogLoggerService.Instance.Debug("ErrorNotification: 类型: {ExceptionType}", exception.GetType().FullName);
-            SerilogLoggerService.Instance.Debug("ErrorNotification: 消息: {ExceptionMessage}", exception.Message);
-            SerilogLoggerService.Instance.Debug("ErrorNotification: 堆栈跟踪: {StackTrace}", exception.StackTrace);
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.ErrorNotification,
+                LogContext.Actions.Process,
+                "显示异常详情");
+                
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.ErrorNotification,
+                LogContext.Actions.Process,
+                $"异常类型: {exception.GetType().FullName}");
+                
+            SerilogLoggerService.Instance.LogComponentDebug(
+                LogContext.Components.ErrorNotification,
+                LogContext.Actions.Process,
+                $"异常消息: {exception.Message}");
             
             if (exception.InnerException != null)
             {
-                SerilogLoggerService.Instance.Debug("ErrorNotification: 内部异常:");
-                SerilogLoggerService.Instance.Debug("ErrorNotification: 类型: {InnerExceptionType}", exception.InnerException.GetType().FullName);
-                SerilogLoggerService.Instance.Debug("ErrorNotification: 消息: {InnerExceptionMessage}", exception.InnerException.Message);
-                SerilogLoggerService.Instance.Debug("ErrorNotification: 堆栈跟踪: {InnerStackTrace}", exception.InnerException.StackTrace);
+                SerilogLoggerService.Instance.LogComponentDebug(
+                    LogContext.Components.ErrorNotification,
+                    LogContext.Actions.Process,
+                    $"内部异常类型: {exception.InnerException.GetType().FullName}");
+                    
+                SerilogLoggerService.Instance.LogComponentDebug(
+                    LogContext.Components.ErrorNotification,
+                    LogContext.Actions.Process,
+                    $"内部异常消息: {exception.InnerException.Message}");
             }
         }
         

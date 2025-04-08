@@ -1,3 +1,4 @@
+using Client.Helpers;
 using Client.Services;
 using Client.Services.Interfaces;
 using Client.ViewModels;
@@ -76,7 +77,7 @@ namespace Client.DependencyInjection
                 {
                     _isInitialized = false;
                     _serviceProvider = null;
-                    LogError($"依赖注入容器初始化失败: {ex.Message}", ex);
+                    LogError("依赖注入容器初始化失败", ex);
                     throw;
                 }
             }
@@ -141,7 +142,7 @@ namespace Client.DependencyInjection
                     }
                     catch (Exception ex)
                     {
-                        LogError($"释放依赖注入容器资源时发生错误: {ex.Message}", ex);
+                        LogError("释放依赖注入容器资源时发生错误", ex);
                     }
                     finally
                     {
@@ -157,7 +158,11 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogInfo(string message)
         {
-            SerilogLoggerService.Instance.Information("DependencyContainer: {Message}", message);
+            SerilogLoggerService.Instance.LogComponentInfo(
+                LogContext.Components.DependencyContainer, 
+                message.Contains("初始化") ? LogContext.Actions.Initialize : 
+                message.Contains("释放") ? LogContext.Actions.Cleanup : 
+                LogContext.Actions.Process);
         }
         
         /// <summary>
@@ -165,7 +170,13 @@ namespace Client.DependencyInjection
         /// </summary>
         private static void LogError(string message, Exception ex)
         {
-            SerilogLoggerService.Instance.Error(ex, "DependencyContainer: {Message}", message);
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.DependencyContainer, 
+                message.Contains("初始化") ? LogContext.Actions.Initialize : 
+                message.Contains("释放") ? LogContext.Actions.Cleanup : 
+                LogContext.Actions.Process,
+                message);
         }
     }
 } 

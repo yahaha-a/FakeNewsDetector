@@ -1,3 +1,4 @@
+using Client.Helpers;
 using Client.Services.Interfaces;
 using Serilog;
 using Serilog.Core;
@@ -24,6 +25,25 @@ namespace Client.Services
         /// 获取全局静态实例，如果不存在则创建
         /// </summary>
         public static SerilogLoggerService Instance => _instance ??= new SerilogLoggerService();
+        
+        /// <summary>
+        /// 设置全局静态实例
+        /// </summary>
+        public static void SetInstance(SerilogLoggerService instance)
+        {
+            _instance = instance ?? throw new ArgumentNullException(nameof(instance));
+        }
+        
+        /// <summary>
+        /// 创建日志服务实例
+        /// </summary>
+        /// <param name="logFilePath">日志文件路径</param>
+        /// <param name="minimumLevel">最小日志级别</param>
+        /// <returns>创建的日志服务实例</returns>
+        public static SerilogLoggerService CreateInstance(string logFilePath = "logs/app.log", string minimumLevel = "Information")
+        {
+            return new SerilogLoggerService(logFilePath, minimumLevel);
+        }
 
         /// <summary>
         /// 构造函数
@@ -55,7 +75,7 @@ namespace Client.Services
                 .CreateLogger();
 
             // 记录日志系统初始化完成
-            Information("日志系统已初始化，最小日志级别: {Level}", minimumLevel);
+            this.LogComponentInfo(LogContext.Components.App, LogContext.Actions.Initialize, "日志系统已初始化，最小日志级别: " + minimumLevel);
         }
 
         /// <inheritdoc/>
@@ -103,8 +123,9 @@ namespace Client.Services
         /// <inheritdoc/>
         public void SetMinimumLevel(string level)
         {
+            var oldLevel = _levelSwitch.MinimumLevel.ToString();
             _levelSwitch.MinimumLevel = ParseLogLevel(level);
-            Information("日志级别已更改为: {Level}", level);
+            this.LogComponentInfoWithParam(LogContext.Components.App, LogContext.Actions.Configure, "LogLevel", level);
         }
 
         /// <summary>

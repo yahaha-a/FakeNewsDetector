@@ -2,11 +2,11 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Client.DependencyInjection;
+using Client.Helpers;
 using Client.Services;
 using Client.Services.Interfaces;
 using Client.ViewModels;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,7 +51,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            LogDebugInfo("窗口加载事件触发");
+            LogDebugInfo(LogContext.Actions.Load, "窗口加载事件触发");
             
             // 设置导航目标
             SetupNavigationTarget();
@@ -61,7 +61,7 @@ public partial class MainWindow : Window
             if (!_navigationInitialized)
             {
                 _navigationInitialized = true;
-                LogDebugInfo("正在初始化导航 - 这是唯一的导航初始化入口");
+                LogDebugInfo(LogContext.Actions.Initialize, "正在初始化导航 - 这是唯一的导航初始化入口");
                 
                 // 立即执行导航，不使用延迟
                 if (DataContext is MainWindowViewModel viewModel)
@@ -80,12 +80,12 @@ public partial class MainWindow : Window
                                 {
                                     // 调用视图模型的导航方法
                                     await viewModel.InitializeNavigation();
-                                    LogDebugInfo("导航初始化成功完成");
+                                    LogDebugInfo(LogContext.Actions.Initialize, "导航初始化成功完成");
                                 }
                                 catch (Exception ex)
                                 {
                                     // 记录错误但不重置导航状态，避免多次重试
-                                    LogDebugInfo($"导航初始化出错: {ex.Message}");
+                                    LogError(LogContext.Actions.Initialize, "导航初始化出错", ex);
                                 }
                             });
                         }
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
                             // 处理在 Task.Run 或 InvokeAsync 中可能发生的异常
                             Dispatcher.UIThread.Post(() => 
                             {
-                                LogDebugInfo($"导航初始化异步操作失败: {ex.Message}");
+                                LogError(LogContext.Actions.Initialize, "导航初始化异步操作失败", ex);
                                 _navigationInitialized = false; // 重置标志以允许重试
                             });
                         }
@@ -102,18 +102,18 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    LogDebugInfo("无法导航：视图模型未初始化");
+                    LogDebugInfo(LogContext.Actions.Initialize, "无法导航：视图模型未初始化");
                     _navigationInitialized = false;
                 }
             }
             else
             {
-                LogDebugInfo("导航已经初始化，跳过重复初始化");
+                LogDebugInfo(LogContext.Actions.Initialize, "导航已经初始化，跳过重复初始化");
             }
         }
         catch (Exception ex)
         {
-            LogDebugInfo($"窗口加载事件发生错误: {ex.Message}");
+            LogError(LogContext.Actions.Load, "窗口加载事件处理失败", ex);
             _navigationInitialized = false;
         }
     }
@@ -129,7 +129,7 @@ public partial class MainWindow : Window
             var navigationService = DependencyContainer.GetService<INavigationService>();
             if (navigationService == null)
             {
-                LogDebugInfo("错误：找不到导航服务，请检查依赖注入容器配置");
+                LogDebugInfo(LogContext.Actions.Configure, "错误：找不到导航服务，请检查依赖注入容器配置");
                 return;
             }
             
@@ -137,23 +137,19 @@ public partial class MainWindow : Window
             var contentControl = this.FindControl<ContentControl>("PageContent");
             if (contentControl == null)
             {
-                LogDebugInfo("错误：找不到PageContent控件，请检查XAML布局");
+                LogDebugInfo(LogContext.Actions.Configure, "错误：找不到PageContent控件，请检查XAML布局");
                 return;
             }
             
-            LogDebugInfo("找到PageContent控件，准备设置导航目标");
+            LogDebugInfo(LogContext.Actions.Configure, "找到PageContent控件，准备设置导航目标");
             
             // 设置导航目标
             navigationService.SetNavigationTarget(contentControl);
-            LogDebugInfo("导航目标设置成功");
+            LogDebugInfo(LogContext.Actions.Configure, "导航目标设置成功");
         }
         catch (Exception ex)
         {
-            LogDebugInfo($"设置导航目标出错: {ex.Message}");
-            if (ex.InnerException != null)
-            {
-                LogDebugInfo($"内部错误: {ex.InnerException.Message}");
-            }
+            LogError(LogContext.Actions.Configure, "设置导航目标失败", ex);
         }
     }
     
@@ -165,19 +161,34 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel viewModel)
         {
             // 确保视图模型随窗口数据上下文变化而更新
-            LogDebugInfo("视图模型已连接到窗口");
+            LogDebugInfo(LogContext.Actions.Initialize, "视图模型已连接到窗口");
         }
         else
         {
-            LogDebugInfo("警告：窗口数据上下文不是MainWindowViewModel类型");
+            LogDebugInfo(LogContext.Actions.Initialize, "警告：窗口数据上下文不是MainWindowViewModel类型");
         }
     }
     
     /// <summary>
     /// 记录调试信息
     /// </summary>
-    private void LogDebugInfo(string message)
+    private void LogDebugInfo(string action, string details)
     {
-        SerilogLoggerService.Instance.Debug("MainWindow: {Message}", message);
+        SerilogLoggerService.Instance.LogComponentDebug(
+            LogContext.Components.MainWindow, 
+            action,
+            details);
+    }
+    
+    /// <summary>
+    /// 记录错误信息
+    /// </summary>
+    private void LogError(string action, string details, Exception ex)
+    {
+        SerilogLoggerService.Instance.LogComponentError(
+            ex,
+            LogContext.Components.MainWindow, 
+            action,
+            details);
     }
 }

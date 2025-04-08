@@ -460,20 +460,64 @@ public partial class App : Application
     // 记录信息到文件
     private void LogInfo(string message)
     {
-        SerilogLoggerService.Instance.Information(message);
+        var actionPart = DetermineAction(message);
+        
+        if (message.StartsWith("App: "))
+        {
+            // 移除旧格式的前缀
+            message = message.Substring(5);
+        }
+        
+        SerilogLoggerService.Instance.LogComponentInfo(
+            LogContext.Components.App, 
+            actionPart,
+            message);
     }
     
     // 记录错误到文件
     private void LogError(string message, Exception? ex = null)
     {
+        var actionPart = DetermineAction(message);
+        
+        if (message.StartsWith("App: "))
+        {
+            // 移除旧格式的前缀
+            message = message.Substring(5);
+        }
+        
         if (ex != null)
         {
-            SerilogLoggerService.Instance.Error(ex, message);
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.App, 
+                actionPart,
+                message);
         }
         else
         {
-            SerilogLoggerService.Instance.Error(message);
+            SerilogLoggerService.Instance.LogComponentError(
+                LogContext.Components.App, 
+                actionPart,
+                message);
         }
+    }
+
+    // 从消息中确定操作类型
+    private string DetermineAction(string message)
+    {
+        if (message.Contains("初始化")) return LogContext.Actions.Initialize;
+        if (message.Contains("启动")) return LogContext.Actions.Start;
+        if (message.Contains("配置") || message.Contains("设置")) return LogContext.Actions.Configure;
+        if (message.Contains("加载")) return LogContext.Actions.Load;
+        if (message.Contains("保存")) return LogContext.Actions.Save;
+        if (message.Contains("清理")) return LogContext.Actions.Cleanup;
+        if (message.Contains("关闭")) return LogContext.Actions.Shutdown;
+        if (message.Contains("主题")) return LogContext.Actions.ChangeTheme;
+        if (message.Contains("语言")) return LogContext.Actions.ChangeLanguage;
+        if (message.Contains("导航")) return LogContext.Actions.Navigate;
+        if (message.Contains("处理")) return LogContext.Actions.Process;
+        if (message.Contains("显示")) return LogContext.Actions.Process;
+        return LogContext.Actions.Process;
     }
 
     /// <summary>

@@ -32,15 +32,15 @@ class Program
         try
         {
             // 记录应用启动信息
-            LogInfo("应用程序启动...");
+            LogInfo(LogContext.Actions.Start, "应用程序启动");
             
             // 初始化全局异常处理
             InitializeGlobalExceptionHandling();
-            LogInfo("全局异常处理已初始化");
+            LogInfo(LogContext.Actions.Initialize, "全局异常处理已初始化");
             
             // 配置依赖注入容器
             DependencyContainer.Initialize();
-            LogInfo("依赖注入容器已初始化");
+            LogInfo(LogContext.Actions.Initialize, "依赖注入容器已初始化");
             
             // 启动Avalonia应用程序
             try 
@@ -50,11 +50,11 @@ class Program
                     .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
                 
                 // 记录启动成功
-                LogInfo("Avalonia应用程序启动成功");
+                LogInfo(LogContext.Actions.Start, "Avalonia应用程序启动成功");
             }
             catch (Exception ex)
             {
-                LogError($"启动UI框架时发生错误: {ex.Message}", ex);
+                LogError(LogContext.Actions.Start, "启动UI框架失败", ex);
                 
                 // 尝试以后备方式启动
                 BuildFallbackAvaloniaApp()
@@ -63,12 +63,12 @@ class Program
             
             // 清理资源
             _exitEvent.WaitOne();
-            LogInfo("应用程序正常退出");
+            LogInfo(LogContext.Actions.Shutdown, "应用程序正常退出");
         }
         catch (Exception ex)
         {
             // 记录致命错误
-            LogError($"应用程序启动失败: {ex.Message}", ex);
+            LogError(LogContext.Actions.Start, "应用程序启动失败", ex);
         }
     }
     
@@ -82,18 +82,18 @@ class Program
         {
             if (e.ExceptionObject is Exception ex)
             {
-                LogError("未处理的应用程序域异常", ex);
+                LogError(LogContext.Actions.Process, "未处理的应用程序域异常", ex);
             }
             else
             {
-                LogError($"未处理的非Exception类型异常: {e.ExceptionObject}", null);
+                LogError(LogContext.Actions.Process, "未处理的非Exception类型异常", null);
             }
         };
         
         // 设置线程异常处理程序
         System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (sender, e) =>
         {
-            LogError("未观察到的任务异常", e.Exception);
+            LogError(LogContext.Actions.Process, "未观察到的任务异常", e.Exception);
             e.SetObserved(); // 标记为已观察，防止应用程序崩溃
         };
     }
@@ -105,7 +105,7 @@ class Program
     {
         try
         {
-            LogInfo("构建Avalonia应用");
+            LogInfo(LogContext.Actions.Configure, "构建Avalonia应用");
             return AppBuilder.Configure<App>()
                 .LogToTrace()
                 .WithInterFont()
@@ -115,7 +115,7 @@ class Program
         }
         catch (Exception ex)
         {
-            LogError($"构建Avalonia应用时发生错误: {ex.Message}", ex);
+            LogError(LogContext.Actions.Configure, "构建Avalonia应用失败", ex);
             throw;
         }
     }
@@ -125,7 +125,7 @@ class Program
     /// </summary>
     public static AppBuilder BuildFallbackAvaloniaApp()
     {
-        LogInfo("尝试使用后备方式构建Avalonia应用");
+        LogInfo(LogContext.Actions.Configure, "使用后备方式构建Avalonia应用");
         return AppBuilder.Configure<App>()
             .LogToTrace()
             .WithInterFont()
@@ -135,21 +135,31 @@ class Program
     }
     
     // 记录信息到文件
-    private static void LogInfo(string message)
+    private static void LogInfo(string action, string details = null)
     {
-        SerilogLoggerService.Instance.Information("Program: {Message}", message);
+        SerilogLoggerService.Instance.LogComponentInfo(
+            LogContext.Components.Program, 
+            action,
+            details);
     }
     
     // 记录错误到文件
-    private static void LogError(string message, Exception? ex)
+    private static void LogError(string action, string details, Exception? ex)
     {
         if (ex != null)
         {
-            SerilogLoggerService.Instance.Error(ex, "Program: {Message}", message);
+            SerilogLoggerService.Instance.LogComponentError(
+                ex,
+                LogContext.Components.Program, 
+                action,
+                details);
         }
         else
         {
-            SerilogLoggerService.Instance.Error("Program: {Message}", message);
+            SerilogLoggerService.Instance.LogComponentError(
+                LogContext.Components.Program, 
+                action,
+                details);
         }
     }
 }

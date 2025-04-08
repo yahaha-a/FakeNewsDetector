@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Client.Helpers;
 using Client.Services;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Client.ViewModels.Base
@@ -93,7 +93,10 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 加载异常 ({ViewModel})", GetType().Name);
+                SerilogLoggerService.Instance.LogComponentError(
+                    ex,
+                    GetViewModelComponent(),
+                    LogContext.Actions.Load);
                 StatusMessage = $"加载出错: {ex.Message}";
             }
             finally
@@ -130,7 +133,10 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 执行异常 ({ViewModel})", GetType().Name);
+                SerilogLoggerService.Instance.LogComponentError(
+                    ex,
+                    GetViewModelComponent(), 
+                    LogContext.Actions.Execute);
                 StatusMessage = $"操作出错: {ex.Message}";
             }
             finally
@@ -160,7 +166,10 @@ namespace Client.ViewModels.Base
             }
             catch (Exception ex)
             {
-                SerilogLoggerService.Instance.Error(ex, "ViewModelBase: 执行异常 ({ViewModel})", GetType().Name);
+                SerilogLoggerService.Instance.LogComponentError(
+                    ex,
+                    GetViewModelComponent(),
+                    LogContext.Actions.Execute);
                 StatusMessage = $"操作出错: {ex.Message}";
                 return default;
             }
@@ -169,6 +178,31 @@ namespace Client.ViewModels.Base
                 IsBusy = false;
                 StatusMessage = string.Empty;
             }
+        }
+        
+        /// <summary>
+        /// 获取当前ViewModel对应的组件名称
+        /// </summary>
+        protected string GetViewModelComponent()
+        {
+            string typeName = GetType().Name;
+            
+            if (typeName.EndsWith("ViewModel"))
+            {
+                typeName = typeName.Substring(0, typeName.Length - "ViewModel".Length);
+            }
+            
+            // 查找并匹配LogContext.Components中的常量值
+            if (typeName == "Home") return LogContext.Components.HomeView;
+            if (typeName == "Settings") return LogContext.Components.Settings;
+            if (typeName == "History") return LogContext.Components.History;
+            if (typeName == "Statistics") return LogContext.Components.Statistics;
+            if (typeName == "Detection") return LogContext.Components.Detection;
+            if (typeName == "Test") return LogContext.Components.Test;
+            if (typeName == "MainWindow") return LogContext.Components.MainWindow;
+            
+            // 如果没有匹配到，返回类型名称
+            return typeName;
         }
     }
 } 
