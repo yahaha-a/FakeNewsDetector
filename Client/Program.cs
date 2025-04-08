@@ -11,7 +11,9 @@ using Avalonia.Win32;
 using Client.DependencyInjection;
 using Client.Helpers;
 using Client.Services;
+using Client.Services.Interfaces;
 using Client.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Client;
 
@@ -31,16 +33,22 @@ class Program
     {
         try
         {
+            // 初始化日志服务
+            var logger = SerilogLoggerService.CreateInstance();
+            
             // 记录应用启动信息
-            LogInfo(LogContext.Actions.Start, "应用程序启动");
+            logger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Start, "应用程序启动");
             
             // 初始化全局异常处理
             InitializeGlobalExceptionHandling();
-            LogInfo(LogContext.Actions.Initialize, "全局异常处理已初始化");
+            logger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Initialize, "全局异常处理已初始化");
             
-            // 配置依赖注入容器
-            DependencyContainer.Initialize();
-            LogInfo(LogContext.Actions.Initialize, "依赖注入容器已初始化");
+            // 配置依赖注入容器，传入预初始化的日志服务
+            DependencyContainer.Initialize(logger);
+            
+            // 从依赖注入容器获取日志服务
+            var diLogger = DependencyContainer.GetService<ILoggerService>();
+            diLogger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Initialize, "依赖注入容器已初始化");
             
             // 启动Avalonia应用程序
             try 
@@ -50,11 +58,11 @@ class Program
                     .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
                 
                 // 记录启动成功
-                LogInfo(LogContext.Actions.Start, "Avalonia应用程序启动成功");
+                diLogger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Start, "Avalonia应用程序启动成功");
             }
             catch (Exception ex)
             {
-                LogError(LogContext.Actions.Start, "启动UI框架失败", ex);
+                diLogger.LogComponentError(ex, LogContext.Components.Program, LogContext.Actions.Start, "启动UI框架失败");
                 
                 // 尝试以后备方式启动
                 BuildFallbackAvaloniaApp()
@@ -63,12 +71,13 @@ class Program
             
             // 清理资源
             _exitEvent.WaitOne();
-            LogInfo(LogContext.Actions.Shutdown, "应用程序正常退出");
+            diLogger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Shutdown, "应用程序正常退出");
         }
         catch (Exception ex)
         {
             // 记录致命错误
-            LogError(LogContext.Actions.Start, "应用程序启动失败", ex);
+            // 这里无法使用依赖注入，因为可能在初始化过程中失败
+            SerilogLoggerService.CreateInstance().LogComponentError(ex, LogContext.Components.Program, LogContext.Actions.Start, "应用程序启动失败");
         }
     }
     
@@ -137,29 +146,63 @@ class Program
     // 记录信息到文件
     private static void LogInfo(string action, string? details = null)
     {
-        SerilogLoggerService.Instance.LogComponentInfo(
-            LogContext.Components.Program, 
-            action,
-            details);
-    }
-    
-    // 记录错误到文件
-    private static void LogError(string action, string details, Exception? ex)
-    {
-        if (ex != null)
+        if (DependencyContainer.IsInitialized)
         {
-            SerilogLoggerService.Instance.LogComponentError(
-                ex,
+            var logger = DependencyContainer.GetService<ILoggerService>();
+            logger.LogComponentInfo(
                 LogContext.Components.Program, 
                 action,
                 details);
         }
         else
         {
-            SerilogLoggerService.Instance.LogComponentError(
+            SerilogLoggerService.CreateInstance().LogComponentInfo(
                 LogContext.Components.Program, 
                 action,
                 details);
+        }
+    }
+    
+    // 记录错误到文件
+    private static void LogError(string action, string details, Exception? ex)
+    {
+        if (DependencyContainer.IsInitialized)
+        {
+            var logger = DependencyContainer.GetService<ILoggerService>();
+            if (ex != null)
+            {
+                logger.LogComponentError(
+                    ex,
+                    LogContext.Components.Program, 
+                    action,
+                    details);
+            }
+            else
+            {
+                logger.LogComponentError(
+                    LogContext.Components.Program, 
+                    action,
+                    details);
+            }
+        }
+        else
+        {
+            var logger = SerilogLoggerService.CreateInstance();
+            if (ex != null)
+            {
+                logger.LogComponentError(
+                    ex,
+                    LogContext.Components.Program, 
+                    action,
+                    details);
+            }
+            else
+            {
+                logger.LogComponentError(
+                    LogContext.Components.Program, 
+                    action,
+                    details);
+            }
         }
     }
 }

@@ -17,32 +17,57 @@ namespace Client.Services
         private readonly ILogger _logger;
         
         /// <summary>
-        /// 全局静态实例，用于在DI容器初始化前使用
+        /// 单例实例
         /// </summary>
         private static SerilogLoggerService? _instance;
         
         /// <summary>
-        /// 获取全局静态实例，如果不存在则创建
+        /// 线程安全锁对象
         /// </summary>
-        public static SerilogLoggerService Instance => _instance ??= new SerilogLoggerService();
+        private static readonly object _lockObject = new object();
         
         /// <summary>
-        /// 设置全局静态实例
+        /// 获取单例实例（内部使用）
         /// </summary>
-        public static void SetInstance(SerilogLoggerService instance)
-        {
-            _instance = instance ?? throw new ArgumentNullException(nameof(instance));
+        internal static SerilogLoggerService Instance 
+        { 
+            get 
+            {
+                if (_instance == null)
+                {
+                    lock (_lockObject)
+                    {
+                        _instance ??= CreateLoggerService();
+                    }
+                }
+                return _instance;
+            }
         }
         
         /// <summary>
-        /// 创建日志服务实例
+        /// 创建日志服务实例（内部使用）
         /// </summary>
-        /// <param name="logFilePath">日志文件路径</param>
-        /// <param name="minimumLevel">最小日志级别</param>
-        /// <returns>创建的日志服务实例</returns>
-        public static SerilogLoggerService CreateInstance(string logFilePath = "logs/app.log", string minimumLevel = "Information")
+        private static SerilogLoggerService CreateLoggerService(string logFilePath = "logs/app.log", string minimumLevel = "Information")
         {
             return new SerilogLoggerService(logFilePath, minimumLevel);
+        }
+        
+        /// <summary>
+        /// 工厂方法：创建或获取日志服务实例
+        /// </summary>
+        /// <remarks>
+        /// 主要用于依赖注入容器和程序初始化
+        /// </remarks>
+        public static SerilogLoggerService CreateInstance(string logFilePath = "logs/app.log", string minimumLevel = "Information")
+        {
+            if (_instance == null)
+            {
+                lock (_lockObject)
+                {
+                    _instance ??= new SerilogLoggerService(logFilePath, minimumLevel);
+                }
+            }
+            return _instance;
         }
 
         /// <summary>
@@ -75,9 +100,10 @@ namespace Client.Services
                 .CreateLogger();
 
             // 记录日志系统初始化完成
-            this.LogComponentInfo(
-                LogContext.Components.App, 
-                LogContext.Actions.Initialize, 
+            _logger.Information(
+                "[{Component}] [{Action}] {Message} {@Properties}",
+                LogContext.Components.App,
+                LogContext.Actions.Initialize,
                 "日志系统已初始化",
                 new { LogLevel = minimumLevel });
         }
@@ -131,7 +157,8 @@ namespace Client.Services
             _levelSwitch.MinimumLevel = ParseLogLevel(level);
             
             // 使用一致的格式记录日志
-            this.LogComponentInfo(
+            _logger.Information(
+                "[{Component}] [{Action}] {Message} {@Properties}",
                 LogContext.Components.App,
                 LogContext.Actions.Configure,
                 "日志级别已更改",

@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using Client.DependencyInjection;
 using Client.Helpers.Events;
+using Client.Services;
 using Client.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -12,29 +13,29 @@ namespace Client.Helpers
     /// </summary>
     public static class ExceptionHandler
     {
-        private static ILoggerService? _logger;
-        
         /// <summary>
-        /// 日志服务
+        /// 获取日志服务
         /// </summary>
-        public static ILoggerService Logger
+        private static ILoggerService Logger
         {
             get
             {
-                if (_logger == null)
+                // 如果依赖注入容器已初始化，优先使用依赖注入
+                if (DependencyContainer.IsInitialized)
                 {
                     try
                     {
-                        _logger = DependencyContainer.GetService<ILoggerService>();
+                        return DependencyContainer.GetService<ILoggerService>();
                     }
                     catch
                     {
-                        // 如果依赖注入容器未初始化，使用控制台临时记录
-                        // 这种情况通常只会在应用初始化早期阶段发生
-                        return new Services.SerilogLoggerService();
+                        // 依赖注入获取失败，使用单例实例
+                        return SerilogLoggerService.CreateInstance();
                     }
                 }
-                return _logger;
+                
+                // 依赖注入容器未初始化，使用单例实例
+                return SerilogLoggerService.CreateInstance();
             }
         }
         

@@ -31,7 +31,8 @@ namespace Client.DependencyInjection
         /// <summary>
         /// 初始化依赖注入容器
         /// </summary>
-        public static void Initialize()
+        /// <param name="logger">预初始化的日志服务实例</param>
+        public static void Initialize(ILoggerService? logger = null)
         {
             // 防止重复初始化
             lock (_lockObject)
@@ -44,11 +45,17 @@ namespace Client.DependencyInjection
                 
                 try
                 {
-                    LogInfo("开始初始化依赖注入容器");
                     var services = new ServiceCollection();
                     
                     // 注册日志服务 - 单例模式（优先注册，便于其他服务使用）
-                    services.AddSingleton<ILoggerService>(sp => SerilogLoggerService.Instance);
+                    if (logger != null)
+                    {
+                        services.AddSingleton<ILoggerService>(sp => logger);
+                    }
+                    else
+                    {
+                        services.AddSingleton<ILoggerService>(sp => SerilogLoggerService.CreateInstance());
+                    }
                     
                     // 注册设置服务 - 单例模式
                     services.AddSingleton<ISettingsService, SettingsService>();
@@ -71,13 +78,26 @@ namespace Client.DependencyInjection
                     // 构建服务提供器
                     _serviceProvider = services.BuildServiceProvider();
                     _isInitialized = true;
-                    LogInfo("依赖注入容器初始化完成");
+                    
+                    // 使用依赖注入获取的日志服务记录初始化完成
+                    var loggerService = _serviceProvider.GetRequiredService<ILoggerService>();
+                    loggerService.LogComponentInfo(
+                        LogContext.Components.DependencyContainer,
+                        LogContext.Actions.Initialize,
+                        "依赖注入容器初始化完成");
                 }
                 catch (Exception ex)
                 {
                     _isInitialized = false;
                     _serviceProvider = null;
-                    LogError("依赖注入容器初始化失败", ex);
+                    
+                    // 如果依赖注入初始化失败，使用预初始化的日志服务或创建新实例
+                    var fallbackLogger = logger ?? SerilogLoggerService.CreateInstance();
+                    fallbackLogger.LogComponentError(
+                        ex,
+                        LogContext.Components.DependencyContainer,
+                        LogContext.Actions.Initialize,
+                        "依赖注入容器初始化失败");
                     throw;
                 }
             }
@@ -166,11 +186,24 @@ namespace Client.DependencyInjection
                 action = LogContext.Actions.Cleanup;
             else
                 action = LogContext.Actions.Process;
-        
-            SerilogLoggerService.Instance.LogComponentInfo(
-                LogContext.Components.DependencyContainer, 
-                action,
-                message);
+            
+            // 如果依赖注入容器已初始化，使用依赖注入获取的日志服务
+            if (IsInitialized)
+            {
+                var logger = ServiceProvider.GetRequiredService<ILoggerService>();
+                logger.LogComponentInfo(
+                    LogContext.Components.DependencyContainer, 
+                    action,
+                    message);
+            }
+            else
+            {
+                // 容器未初始化时使用单例实例
+                SerilogLoggerService.Instance.LogComponentInfo(
+                    LogContext.Components.DependencyContainer, 
+                    action,
+                    message);
+            }
         }
         
         /// <summary>
@@ -186,12 +219,26 @@ namespace Client.DependencyInjection
                 action = LogContext.Actions.Cleanup;
             else
                 action = LogContext.Actions.Process;
-        
-            SerilogLoggerService.Instance.LogComponentError(
-                ex,
-                LogContext.Components.DependencyContainer, 
-                action,
-                message);
+            
+            // 如果依赖注入容器已初始化，使用依赖注入获取的日志服务
+            if (IsInitialized)
+            {
+                var logger = ServiceProvider.GetRequiredService<ILoggerService>();
+                logger.LogComponentError(
+                    ex,
+                    LogContext.Components.DependencyContainer, 
+                    action,
+                    message);
+            }
+            else
+            {
+                // 容器未初始化时使用单例实例
+                SerilogLoggerService.Instance.LogComponentError(
+                    ex,
+                    LogContext.Components.DependencyContainer, 
+                    action,
+                    message);
+            }
         }
     }
 } 
