@@ -57,6 +57,9 @@ namespace Client.DependencyInjection
                         services.AddSingleton<ILoggerService>(sp => SerilogLoggerService.CreateInstance());
                     }
                     
+                    // 注册配置服务
+                    services.AddSingleton<IConfigService, ConfigService>();
+                    
                     // 注册设置服务 - 单例模式
                     services.AddSingleton<ISettingsService, SettingsService>();
                     

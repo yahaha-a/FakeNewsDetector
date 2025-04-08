@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -29,7 +30,7 @@ class Program
     /// 应用程序入口点
     /// </summary>
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -49,6 +50,11 @@ class Program
             // 从依赖注入容器获取日志服务
             var diLogger = DependencyContainer.GetService<ILoggerService>();
             diLogger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Initialize, "依赖注入容器已初始化");
+            
+            // 初始化配置
+            var configService = DependencyContainer.GetService<IConfigService>();
+            await configService.LoadConfigAsync();
+            diLogger.LogComponentInfo(LogContext.Components.Program, LogContext.Actions.Initialize, "配置服务已初始化");
             
             // 启动Avalonia应用程序
             try 
