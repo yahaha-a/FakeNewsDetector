@@ -3,89 +3,34 @@
 # =============================================
 .DS_Store
 Thumbs.db
-*~
 
 # =============================================
 # 编辑器/IDE 配置文件
 # =============================================
-# Visual Studio
-.vs/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# VS Code
 .vscode/
-.editorconfig
-
-# JetBrains IDEs
 .idea/
-*.iml
-*.iws
-*.ipr
-
-# Cursor
 .cursor/
 
 # =============================================
 # C#/.NET 编译输出和临时文件
 # =============================================
-# 编译输出目录
 [Bb]in/
 [Oo]bj/
 [Dd]ebug/
 [Rr]elease/
-x64/
-x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-
-# 日志和缓存
-[Ll]og/
-[Ll]ogs/
-.builds
-*.log
-*.tmp
-*.bak
-*.swp
-
-# 编译产物
 *.pdb
 *.exe
 *.dll
-*.aps
-*.ipch/
-*.opendb
-*.opensdf
-*.sdf
+*.user
+*.userosscache
+*.sln.docstates
 *.cachefile
 *.ilk
 *.meta
 *.obj
-*.rsp
-*.sbr
-*.class
 *.iobj
 *.ipdb
-*.dump
 *.binlog
-*.deploymenttarget
-*.gpState
-*.userprefs
-
-# 项目文件
-ServiceDependencies/
-project.lock.json
-project.fragment.lock.json
-PublishProfiles/
-**/Properties/launchSettings.json
-artifacts/
-AppPackages/
-BundleArtifacts/
-*.resources
-Generated\ Files/
 
 # =============================================
 # Avalonia 特定文件
@@ -94,7 +39,6 @@ Generated\ Files/
 !**/*.designer.cs
 **/Generated/
 *.xamlobj
-*.xproj.user
 
 # =============================================
 # Python 开发环境
@@ -104,63 +48,22 @@ Generated\ Files/
 venv/
 env/
 ENV/
-.env
-env.bak/
-venv.bak/
 
 # Python 编译文件
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
 
 # 包管理
 *.egg-info/
-.installed.cfg
-*.egg
 dist/
 build/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-develop-eggs/
-*.manifest
-*.spec
-
-# 依赖管理
 uv.lock
-pip-log.txt
-pip-delete-this-directory.txt
-.python-version
-
-# =============================================
-# 测试和文档
-# =============================================
-# 测试输出
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-
-# Jupyter Notebook
-.ipynb_checkpoints
 
 # =============================================
 # ML/数据科学项目
 # =============================================
-# 模型文件（保留源代码，忽略预训练模型）
+# 模型文件
 *.h5
 *.pb
 *.onnx
@@ -171,17 +74,7 @@ coverage.xml
 model_data/
 checkpoints/
 
-# 项目目录结构
-# 保留源代码和配置文件
-!ML/src/models/  # 模型源代码
-!ML/src/data/    # 数据处理代码
-!ML/src/utils/   # 工具函数
-
-# 忽略大型数据文件
-ML/data/*
-!ML/data/.gitkeep
-
-# 忽略结果和日志
+# 结果和日志
 ML/results/*
 !ML/results/.gitkeep
 ML/logs/*
@@ -190,26 +83,7 @@ ML/logs/*
 # 实验跟踪
 wandb/
 mlruns/
-lightning_logs/
 tensorboard/
-
-# =============================================
-# 容器化
-# =============================================
-.docker/
-docker-compose.override.yml
-.dockerignore
-
-# =============================================
-# 前端开发
-# =============================================
-node_modules/
-bower_components/
-package-lock.json
-yarn.lock
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # =============================================
 # 项目特定配置
