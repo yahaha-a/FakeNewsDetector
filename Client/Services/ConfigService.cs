@@ -35,7 +35,9 @@ public class ConfigService : IConfigService, IDisposable
     {
         _configFilePath = configFilePath;
         _validator = validator;
-        _currentConfig = new AppConfig();
+        
+        // 使用默认配置
+        _currentConfig = DefaultConfigs.GetDefaultAppConfig();
         _isInitialized = false;
         _isDisposed = false;
 
@@ -150,25 +152,58 @@ public class ConfigService : IConfigService, IDisposable
     {
         if (!File.Exists(_configFilePath))
         {
-            _currentConfig = new AppConfig();
+            // 使用默认配置
+            _currentConfig = DefaultConfigs.GetDefaultAppConfig();
             await SaveConfigAsync();
         }
         else
         {
-            var json = await File.ReadAllTextAsync(_configFilePath);
-            var options = new JsonSerializerOptions
+            try
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+                var json = await File.ReadAllTextAsync(_configFilePath);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
 
-            var oldConfig = _currentConfig;
-            _currentConfig = JsonSerializer.Deserialize<AppConfig>(json, options) ?? new AppConfig();
+                var oldConfig = _currentConfig;
+                var loadedConfig = JsonSerializer.Deserialize<AppConfig>(json, options);
+                _currentConfig = loadedConfig ?? DefaultConfigs.GetDefaultAppConfig();
 
-            // 触发配置变更事件
-            OnConfigChanged(oldConfig, _currentConfig);
+                // 验证加载的配置
+                var validationResult = await ValidateConfigAsync(_currentConfig);
+                if (!validationResult.IsValid)
+                {
+                    // 尝试修复配置
+                    _currentConfig = await FixConfigAsync(_currentConfig);
+                    await SaveConfigAsync();
+                }
+
+                // 触发配置变更事件
+                OnConfigChanged(oldConfig, _currentConfig);
+            }
+            catch (Exception ex)
+            {
+                // 出错时使用默认配置
+                Log.Error(ex, "加载配置文件失败，将使用默认配置");
+                var oldConfig = _currentConfig;
+                _currentConfig = DefaultConfigs.GetDefaultAppConfig();
+                
+                // 触发配置变更事件
+                OnConfigChanged(oldConfig, _currentConfig);
+                
+                // 保存有效的默认配置
+                await SaveConfigAsync();
+            }
         }
 
         _isInitialized = true;
+        
+        // 启用文件监视
+        if (_configWatcher != null)
+        {
+            _configWatcher.EnableRaisingEvents = true;
+        }
     }
 
     /// <summary>
@@ -177,11 +212,25 @@ public class ConfigService : IConfigService, IDisposable
     public async Task ResetConfigAsync()
     {
         var oldConfig = _currentConfig;
-        _currentConfig = new AppConfig();
+        _currentConfig = DefaultConfigs.GetDefaultAppConfig();
 
         // 触发配置变更事件
         OnConfigChanged(oldConfig, _currentConfig);
 
+        await SaveConfigAsync();
+    }
+    
+    /// <summary>
+    /// 重置配置的指定部分为默认值
+    /// </summary>
+    public async Task ResetConfigSectionAsync(ConfigSection section)
+    {
+        var oldConfig = _currentConfig;
+        _currentConfig = DefaultConfigs.ResetConfigSection(_currentConfig, section);
+        
+        // 触发配置变更事件
+        OnConfigChanged(oldConfig, _currentConfig);
+        
         await SaveConfigAsync();
     }
 
@@ -206,15 +255,64 @@ public class ConfigService : IConfigService, IDisposable
     /// </summary>
     public async Task<AppConfig> FixConfigAsync(AppConfig config)
     {
+        if (config == null)
+        {
+            return DefaultConfigs.GetDefaultAppConfig();
+        }
+        
         var result = await ValidateConfigAsync(config);
         if (result.IsValid)
         {
             return config;
         }
 
-        // 这里可以根据实际需求实现配置修复逻辑
-        // 目前只是简单地返回一个新的默认配置
-        return new AppConfig();
+        // 按属性逐个修复配置
+        // 主题
+        if (result.Errors.Any(e => e.PropertyName == nameof(AppConfig.Theme)))
+        {
+            config.Theme = DefaultConfigs.DefaultTheme;
+        }
+        
+        // 语言
+        if (result.Errors.Any(e => e.PropertyName == nameof(AppConfig.Language)))
+        {
+            config.Language = DefaultConfigs.DefaultLanguage;
+        }
+        
+        // 窗口状态
+        if (result.Errors.Any(e => e.PropertyName.StartsWith(nameof(AppConfig.WindowState))))
+        {
+            config.WindowState = DefaultConfigs.GetDefaultWindowState();
+        }
+        
+        // API设置
+        if (result.Errors.Any(e => e.PropertyName.StartsWith(nameof(AppConfig.ApiSettings))))
+        {
+            config.ApiSettings = DefaultConfigs.GetDefaultApiSettings();
+        }
+        
+        // UI设置
+        if (result.Errors.Any(e => e.PropertyName.StartsWith(nameof(AppConfig.UiSettings))))
+        {
+            config.UiSettings = DefaultConfigs.GetDefaultUiSettings();
+        }
+        
+        // 最近文件列表
+        if (result.Errors.Any(e => e.PropertyName == nameof(AppConfig.RecentFiles)))
+        {
+            config.RecentFiles.Clear();
+        }
+        
+        // 再次验证修复后的配置
+        result = await ValidateConfigAsync(config);
+        if (!result.IsValid)
+        {
+            // 如果修复后仍然无效，则返回完全默认的配置
+            Log.Warning("配置修复失败，使用完全默认配置");
+            return DefaultConfigs.GetDefaultAppConfig();
+        }
+        
+        return config;
     }
 
     /// <summary>
@@ -246,6 +344,16 @@ public class ConfigService : IConfigService, IDisposable
         if (oldConfig.RecentFiles != newConfig.RecentFiles)
         {
             OnPropertyChanged(nameof(AppConfig.RecentFiles), oldConfig.RecentFiles, newConfig.RecentFiles);
+        }
+        
+        if (oldConfig.Theme != newConfig.Theme)
+        {
+            OnPropertyChanged(nameof(AppConfig.Theme), oldConfig.Theme, newConfig.Theme);
+        }
+        
+        if (oldConfig.Language != newConfig.Language)
+        {
+            OnPropertyChanged(nameof(AppConfig.Language), oldConfig.Language, newConfig.Language);
         }
     }
 

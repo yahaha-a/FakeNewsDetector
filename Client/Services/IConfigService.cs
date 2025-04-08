@@ -9,12 +9,12 @@ namespace Client.Services;
 /// <summary>
 /// 配置服务接口
 /// </summary>
-public interface IConfigService
+public interface IConfigService : IDisposable
 {
     /// <summary>
     /// 配置变更事件
     /// </summary>
-    event EventHandler<ConfigChangedEventArgs> ConfigChanged;
+    event EventHandler<ConfigChangedEventArgs>? ConfigChanged;
 
     /// <summary>
     /// 获取当前配置
@@ -41,6 +41,12 @@ public interface IConfigService
     /// </summary>
     Task ResetConfigAsync();
     
+    /// <summary>
+    /// 重置配置的指定部分为默认值
+    /// </summary>
+    /// <param name="section">要重置的配置部分</param>
+    Task ResetConfigSectionAsync(ConfigSection section);
+
     /// <summary>
     /// 验证配置
     /// </summary>
