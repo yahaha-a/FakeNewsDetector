@@ -28,16 +28,64 @@ def main() -> None:
     """
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="FakeNewsDetector - 中文虚假新闻检测系统")
-    parser.add_argument('--model', type=str, default='naive_bayes',
+    parser.add_argument('--model', type=str, default=None,
                         choices=['naive_bayes', 'random_forest', 'svm', 'logistic'],
                         help="选择要使用的模型")
-    parser.add_argument('--vectorizer', type=str, default='tfidf',
+    parser.add_argument('--vectorizer', type=str, default=None,
                         choices=['tfidf', 'count'],
                         help="选择要使用的向量化方法")
     parser.add_argument('--config', type=str, default='config/config.yaml',
                         help="配置文件路径")
     
     args = parser.parse_args()
+    
+    # 交互式选择模型（如果未通过命令行指定）
+    if args.model is None:
+        print("\n请选择要使用的模型:")
+        print("1. 朴素贝叶斯 (naive_bayes)")
+        print("2. 随机森林 (random_forest)")
+        print("3. 支持向量机 (svm)")
+        print("4. 逻辑回归 (logistic)")
+        
+        choice = input("\n请输入选项编号 [1-4]，默认为1: ").strip()
+        
+        model_map = {
+            "": "naive_bayes",  # 默认选项
+            "1": "naive_bayes",
+            "2": "random_forest",
+            "3": "svm",
+            "4": "logistic"
+        }
+        
+        if choice not in model_map:
+            print(f"无效的选择: {choice}，将使用默认模型 (朴素贝叶斯)")
+            args.model = "naive_bayes"
+        else:
+            args.model = model_map[choice]
+            
+        print(f"已选择模型: {args.model}")
+    
+    # 交互式选择向量化方法（如果未通过命令行指定）
+    if args.vectorizer is None:
+        print("\n请选择要使用的向量化方法:")
+        print("1. TF-IDF向量化 (tfidf)")
+        print("2. Count向量化 (count)")
+        
+        choice = input("\n请输入选项编号 [1-2]，默认为1: ").strip()
+        
+        vectorizer_map = {
+            "": "tfidf",  # 默认选项
+            "1": "tfidf",
+            "2": "count"
+        }
+        
+        if choice not in vectorizer_map:
+            print(f"无效的选择: {choice}，将使用默认向量化方法 (tfidf)")
+            args.vectorizer = "tfidf"
+        else:
+            args.vectorizer = vectorizer_map[choice]
+            
+        print(f"已选择向量化方法: {args.vectorizer}")
     
     # 如果指定了配置文件，重新加载
     if args.config != 'config/config.yaml':
