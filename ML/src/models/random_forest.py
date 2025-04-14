@@ -35,6 +35,7 @@ def train_random_forest(x_train, y_train, progress_callback=None):
     # 设置网格搜索参数
     if progress_callback:
         progress_callback("网格搜索优化参数")
+        progress_callback(5)  # 为参数设置分配5%进度
     
     param_grid = {
         "n_estimators": n_estimators,
@@ -51,7 +52,8 @@ def train_random_forest(x_train, y_train, progress_callback=None):
     model.fit(x_train, y_train)
     
     if progress_callback:
-        progress_callback(20)
+        # 随机森林训练和网格搜索较慢，分配较大的进度增量
+        progress_callback(15)
     
     # 输出最佳参数
     logger.info(f"随机森林最佳参数: {model.best_params_}")

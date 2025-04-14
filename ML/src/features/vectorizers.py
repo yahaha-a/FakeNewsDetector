@@ -33,7 +33,7 @@ class TextVectorizer:
         """
         self.vectorizer_type = vectorizer_type.lower()
         self.stopwords = stopwords if stopwords else []
-        self.vectorizer = None
+        self.vectorizer: Union[TfidfVectorizer, CountVectorizer, None] = None
         
         # 检查向量化器类型是否有效
         if self.vectorizer_type not in ['tfidf', 'count']:
@@ -102,6 +102,7 @@ class TextVectorizer:
         
         try:
             logger.info(f"使用{self.vectorizer_type}对训练数据进行向量化: {len(valid_texts)}个文档")
+            assert self.vectorizer is not None, "向量化器未初始化"
             result = self.vectorizer.fit_transform(valid_texts)
             
             # 记录一些统计信息
@@ -166,27 +167,4 @@ class TextVectorizer:
         except Exception as e:
             error_msg = f"{self.vectorizer_type}向量化失败: {str(e)}"
             logger.error(error_msg)
-            raise ValueError(error_msg)
-    
-    def get_feature_names(self) -> List[str]:
-        """
-        获取特征名称（词汇表中的词语）
-        
-        Returns:
-            List[str]: 特征名称列表
-            
-        Raises:
-            ValueError: 向量化器未初始化
-        """
-        if self.vectorizer is None:
-            raise ValueError("向量化器未初始化，请先调用fit_transform")
-            
-        try:
-            # 兼容不同版本的sklearn
-            if hasattr(self.vectorizer, 'get_feature_names_out'):
-                return self.vectorizer.get_feature_names_out().tolist()
-            else:
-                return self.vectorizer.get_feature_names()
-        except Exception as e:
-            logger.error(f"获取特征名称失败: {str(e)}")
-            return [] 
+            raise ValueError(error_msg) 

@@ -2,7 +2,9 @@
 FakeNewsDetector - 中文虚假新闻检测系统主程序
 """
 import os
+import sys
 import argparse
+import traceback
 from typing import Dict, Tuple, List, Any, Optional, Union
 from tqdm import tqdm
 
@@ -10,8 +12,9 @@ from src.utils.config_loader import CONFIG, load_config
 from src.utils.logger import logger
 from src.data.data_loader import load_data
 from src.data.preprocessor import TextPreprocessor
-from src.pipeline.model_trainer import train_model_with_pipeline
-from src.evaluation.metrics import plot_roc_curve
+from src.features.vectorizers import TextVectorizer
+from src.models import train_naive_bayes, train_random_forest, train_svm, train_logistic_regression
+from src.evaluation.metrics import evaluate_model, plot_roc_curve
 
 
 def main() -> None:
@@ -21,7 +24,6 @@ def main() -> None:
     命令行参数:
         --model: 选择使用的模型类型 (naive_bayes, random_forest, svm, logistic)
         --vectorizer: 选择使用的特征向量化方法 (tfidf, count)
-        --grid-search: 是否使用网格搜索进行超参数优化
         --config: 配置文件路径
     """
     # 解析命令行参数
@@ -32,8 +34,6 @@ def main() -> None:
     parser.add_argument('--vectorizer', type=str, default='tfidf',
                         choices=['tfidf', 'count'],
                         help="选择要使用的向量化方法")
-    parser.add_argument('--grid-search', action='store_true',
-                        help="是否使用网格搜索进行超参数优化")
     parser.add_argument('--config', type=str, default='config/config.yaml',
                         help="配置文件路径")
     
@@ -58,6 +58,7 @@ def main() -> None:
         """
         if isinstance(value_or_desc, str):
             pbar.set_description(value_or_desc)
+            logger.debug(f"进度更新: {value_or_desc}")
         else:
             pbar.update(value_or_desc)
     
@@ -67,23 +68,71 @@ def main() -> None:
         # 加载数据
         update_progress("加载数据")
         x_train, y_train, x_test, y_test, stopwords = load_data()
+        logger.info(f"数据加载完成，训练集大小: {len(x_train)}，测试集大小: {len(x_test)}")
+        update_progress(10)  # 为数据加载分配10%进度
         
         # 预处理数据
         update_progress("预处理数据")
         preprocessor = TextPreprocessor(stopwords)
         x_train_processed, x_test_processed = preprocessor.preprocess_data(
             x_train, x_test, update_progress)
+        logger.info(f"数据预处理完成，处理后训练集大小: {len(x_train_processed)}，测试集大小: {len(x_test_processed)}")
+        update_progress(10)  # 为数据预处理分配10%进度
         
-        # 使用流水线训练模型
+        # 使用向量化器
+        update_progress(f"特征提取: {args.vectorizer}")
+        vectorizer = TextVectorizer(args.vectorizer, stopwords)
+        x_train_vec = vectorizer.fit_transform(x_train_processed, update_progress)
+        x_test_vec = vectorizer.transform(x_test_processed, update_progress)
+        logger.info(f"特征提取完成，特征矩阵形状: {x_train_vec.shape}, {x_test_vec.shape}")
+        update_progress(10)  # 为特征提取分配10%进度
+        
+        # 训练模型
         update_progress(f"训练{args.model}模型")
-        model, y_predict, results = train_model_with_pipeline(
-            x_train_processed, y_train, x_test_processed, y_test,
-            model_type=args.model,
-            vectorizer_type=args.vectorizer,
-            use_grid_search=args.grid_search,
-            stopwords=stopwords,
-            progress_callback=update_progress
-        )
+        logger.info(f"开始训练{args.model}模型...")
+        
+        # 各个模型已经在各自的函数中有进度更新，此处只分配模型初始化的部分进度
+        update_progress(5)  # 为模型初始化分配5%进度
+        
+        if args.model == 'naive_bayes':
+            model = train_naive_bayes(x_train_vec, y_train, update_progress)
+            # 朴素贝叶斯在函数内部会更新5%进度
+        elif args.model == 'random_forest':
+            model = train_random_forest(x_train_vec, y_train, update_progress)
+            # 随机森林在函数内部会更新总共20%进度(5%+15%)
+        elif args.model == 'svm':
+            model = train_svm(x_train_vec, y_train, update_progress)
+            # SVM在函数内部会更新10%进度
+        elif args.model == 'logistic':
+            model = train_logistic_regression(x_train_vec, y_train, update_progress)
+            # 逻辑回归在函数内部会更新8%进度
+        
+        logger.info("模型训练完成")
+        
+        # 根据模型类型补充剩余进度，确保总进度达到30%
+        remaining_progress = {
+            'naive_bayes': 20,    # 已经更新了5% + 5% = 10%，还需要20%
+            'random_forest': 5,   # 已经更新了5% + 20% = 25%，还需要5%
+            'svm': 15,            # 已经更新了5% + 10% = 15%，还需要15%
+            'logistic': 17        # 已经更新了5% + 8% = 13%，还需要17%
+        }
+        update_progress(remaining_progress[args.model])  # 确保所有模型总进度为30%
+        
+        # 预测
+        update_progress("预测测试集")
+        y_predict = model.predict(x_test_vec)
+        logger.info(f"预测完成，预测结果大小: {len(y_predict)}")
+        update_progress(10)  # 为预测分配10%进度
+        
+        # 评估模型
+        update_progress("评估模型性能")
+        results = evaluate_model(y_test, y_predict, update_progress)
+        logger.info(f"模型评估完成")
+        update_progress(10)  # 为评估分配10%进度
+        
+        # 绘制ROC曲线（不需要这里调用，因为evaluate_model内部已经调用了）
+        update_progress("完成")
+        update_progress(10)  # 最后10%进度完成
         
         # 显示结果
         logger.info(f"模型评估结果: 准确率={results['accuracy']:.4f}, AUC={results['auc']:.4f}")
@@ -99,18 +148,27 @@ def main() -> None:
         logger.error(f"文件未找到: {str(e)}", exc_info=True)
         pbar.close()
         print(f"错误: 无法找到所需文件 - {str(e)}")
+        print(traceback.format_exc())
         
     except ValueError as e:
         logger.error(f"数据处理错误: {str(e)}", exc_info=True)
         pbar.close()
         print(f"错误: 数据处理异常 - {str(e)}")
+        print(traceback.format_exc())
         
     except Exception as e:
         logger.error(f"发生未知错误: {str(e)}", exc_info=True)
         pbar.close()
         print(f"错误: 系统执行异常 - {str(e)}")
+        print(traceback.format_exc())
         raise
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        logger.debug("程序开始执行...")
+        main()
+    except Exception as e:
+        print(f"程序执行出错: {str(e)}")
+        traceback.print_exc()
+        sys.exit(1)

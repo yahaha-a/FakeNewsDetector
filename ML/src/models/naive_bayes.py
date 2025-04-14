@@ -35,7 +35,8 @@ def train_naive_bayes(x_train, y_train, progress_callback=None):
     model.fit(x_train, y_train)
     
     if progress_callback:
-        progress_callback(20)
+        # 朴素贝叶斯训练非常快，不需要大的进度增量
+        progress_callback(5)
     
     logger.info("朴素贝叶斯模型训练完成")
     return model 

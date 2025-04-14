@@ -43,7 +43,8 @@ def train_svm(x_train, y_train, progress_callback=None):
     model.fit(x_train, y_train)
     
     if progress_callback:
-        progress_callback(20)
+        # SVM训练较慢，特别是对大数据集，分配较大的进度增量
+        progress_callback(10)
     
     logger.info("SVM模型训练完成")
     return model 

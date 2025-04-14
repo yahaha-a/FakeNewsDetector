@@ -90,4 +90,7 @@ tensorboard/
 # =============================================
 # 客户端日志
 Client/logs/*
-!Client/logs/.gitkeep 
+!Client/logs/.gitkeep
+
+# Python环境文件
+.python-version 
